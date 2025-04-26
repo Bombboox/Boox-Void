@@ -1,0 +1,78 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: sans-serif;
+}
+
+#editor-container {
+    display: flex;
+    height: 100vh;
+    flex-direction: row; /* Ensure horizontal layout */
+}
+
+#editor-canvas {
+    flex-grow: 1;
+    background-color: #333; /* Dark grey background */
+    display: block; /* Remove default canvas spacing */
+}
+
+#sidebar {
+    width: 300px; /* Fixed width */
+    height: 100%;
+    min-width: 300px; /* Ensure sidebar doesn't shrink */
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+    background-color: #f0f0f0;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); /* Add subtle shadow for better visibility */
+    position: relative; /* Ensure proper stacking context */
+    z-index: 10; /* Place sidebar above other elements */
+    position: absolute;
+    right: 0;
+}
+
+#sidebar h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.2em; /* Slightly larger heading */
+}
+
+#sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 15px;
+}
+
+#sidebar li {
+    margin-bottom: 5px;
+}
+
+#sidebar button {
+    width: 100%;
+    padding: 8px;
+    cursor: pointer;
+}
+
+#properties-panel {
+    margin-bottom: 15px;
+}
+
+#properties-panel input {
+    width: calc(100% - 10px);
+    margin-bottom: 5px;
+    padding: 6px; /* Add some padding to inputs */
+}
+
+#export-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#export-button:hover {
+    background-color: #45a049;
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level Editor</title>
+    <link rel="stylesheet" href="level_editor.css">
+</head>
+<body>
+    <div id="editor-container">
+        <canvas id="editor-canvas"></canvas>
+        <div id="sidebar">
+            <h2>Objects</h2>
+            <ul id="object-list">
+                <!-- Object types will be added here -->
+                <li><button data-type="Rectangle">Rectangle</button></li>
+                <li><button data-type="Circle">Circle</button></li>
+                <li><button data-type="Point">Point</button></li>
+                <!-- Add more object types as needed -->
+            </ul>
+            <hr>
+            <h2>Properties</h2>
+            <div id="properties-panel">
+                <!-- Selected object properties will be shown here -->
+                <p>Select an object to edit properties.</p>
+            </div>
+            <div>
+                <input type="checkbox" id="snap-toggle">
+                <label for="snap-toggle">Snap to Grid</label>
+            </div>
+            <hr>
+             <button id="export-button">Export Level</button>
+        </div>
+    </div>
+    <script src="level_editor.js"></script>
+</body>
+</html>
