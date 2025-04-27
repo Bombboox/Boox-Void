@@ -8,6 +8,7 @@ class Enemy {
         this.speed = speed;
         this.timeStuck = 0; // Time in milliseconds the enemy has been stuck
         this.stuckThreshold = 500; // 0.5 seconds threshold
+        this.hitSound = hit_sound;
 
         // PixiJS Graphics - Must be added to container by subclass or externally
         this.graphics = new PIXI.Graphics();
@@ -46,6 +47,12 @@ class Enemy {
             if(checkCollision(this, bullets[i])) {
                 this.hp -= bullets[i].damage;
                 bullets[i].destroy();
+                this.hitSound.currentTime = 0;
+                this.hitSound.play(
+                    {
+                        volume: 1,
+                    }
+                );
                 return true;
             }
         }
@@ -155,59 +162,50 @@ class Enemy {
                     this.timeStuck += deltaTime;
                  }
             } else {
-                // Successfully moved, reset timer
                 this.timeStuck = 0;
             }
 
-            // Update position based on collision checks
             this.position.x += actualMoveX;
             this.position.y += actualMoveY;
 
-            // Check if stuck and need new target
              if (this.timeStuck >= this.stuckThreshold) {
-                 console.log("Enemy stuck, assigning new target");
                  this.target = randomTargetTowardsPlayer(this.position, random(250, 500)); // Or another target logic
                  this.timeStuck = 0; // Reset timer after assigning new target
              }
 
         } else {
-             // Already at target, reset stuck timer
              this.timeStuck = 0;
         }
     }
 }
 
 class DefaultEnemy extends Enemy {
-    constructor(x, y, worldContainer) { // Accept container
+    constructor(x, y, worldContainer) {
         super(x, y, 60, 60, 10, 0.25);
-        this.initializeGraphics(worldContainer); // Add graphics to stage
+        this.initializeGraphics(worldContainer); 
     }
 
     renderGraphics() {
-        // Draw the rectangle at the graphics object's origin (0,0)
-        // The container position is set in the update loop
         this.graphics.clear();
         this.graphics.beginFill(0xff0000); // Red
         this.graphics.drawRect(0, 0, this.width, this.height);
         this.graphics.endFill();
     }
 
-    update(deltaTime, worldContainer) { // Accept deltaTime and container
+    update(deltaTime, worldContainer) { 
         this.move(deltaTime);
 
-        // Update graphics position before other logic
         this._updateGraphicsPosition();
 
         const distanceToTarget = this.position.distance(this.target);
         if (distanceToTarget < 10) {
             this.target = randomTargetTowardsPlayer(this.position, random(250, 500));
-            this.timeStuck = 0; // Reset stuck timer when reaching target
+            this.timeStuck = 0; 
         }
         if(this.hp <= 0) {
-            this.destroy(worldContainer); // Pass container for graphics removal
-            return; // Stop update if destroyed
+            this.destroy(worldContainer); 
+            return; 
         }
         this.bulletCollision();
-        // No need to call renderGraphics here unless appearance changes
     }
 }

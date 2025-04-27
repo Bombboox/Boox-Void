@@ -3,9 +3,13 @@ let appInitialized = false;
 
 async function initializeApp() {
     await app.init({
+        width: 1920,
+        height: 1080,
         resizeTo: window,
         backgroundColor: 0x000000, // Black background
-        antialias: true,
+        resolution: devicePixelRatio,
+        autoDensity: true,
+        antialias: false,
     });
     document.body.appendChild(app.canvas);
     appInitialized = true;
@@ -51,40 +55,16 @@ const main = () => {
     player.cannons.push(new DefaultCannon(worldContainer));
 
     enemies.push(new DefaultEnemy(300, 300, worldContainer));
+    enemies.push(new DefaultEnemy(400, 300, worldContainer));
+    enemies.push(new DefaultEnemy(500, 300, worldContainer));
+    enemies.push(new DefaultEnemy(600, 300, worldContainer));
+    enemies.push(new DefaultEnemy(700, 300, worldContainer));
 
     configureLevel("levels/level_1.json", player, worldContainer); 
 
+    joyful_machinery.volume = 0.1;
+    joyful_machinery.loop = true;
     app.ticker.add(gameLoop);
-}
-
-const drawGrid = () => {
-    gridGraphics.clear(); // Clear previous grid lines
-
-    // Calculate the viewport boundaries in world coordinates (considering camera)
-    const screenTopLeft = worldContainer.toLocal(new PIXI.Point(0, 0));
-    const screenBottomRight = worldContainer.toLocal(new PIXI.Point(app.screen.width, app.screen.height));
-
-    // Find the first grid line position based on the transformed coordinates
-    const startX = Math.floor(screenTopLeft.x / gridSize) * gridSize;
-    const startY = Math.floor(screenTopLeft.y / gridSize) * gridSize;
-
-    // Calculate the end positions
-    const endX = Math.ceil(screenBottomRight.x / gridSize) * gridSize;
-    const endY = Math.ceil(screenBottomRight.y / gridSize) * gridSize;
-
-    gridGraphics.lineStyle(1, gridColor, gridAlpha);
-
-    // Draw vertical lines
-    for (let x = startX; x <= endX; x += gridSize) {
-        gridGraphics.moveTo(x, screenTopLeft.y);
-        gridGraphics.lineTo(x, screenBottomRight.y);
-    }
-
-    // Draw horizontal lines
-    for (let y = startY; y <= endY; y += gridSize) {
-        gridGraphics.moveTo(screenTopLeft.x, y);
-        gridGraphics.lineTo(screenBottomRight.x, y);
-    }
 }
 
 const gameLoop = (ticker) => {
@@ -104,11 +84,8 @@ const gameLoop = (ticker) => {
     worldContainer.x = app.screen.width / 2 - player.position.x * worldContainer.scale.x;
     worldContainer.y = app.screen.height / 2 - player.position.y * worldContainer.scale.y;
 
-    drawGrid();
-
     fpsText.text = `FPS: ${Math.round(app.ticker.FPS)}`;
 }
-
 window.addEventListener("mousemove", (event) => {
     mouseX = event.clientX;
     mouseY = event.clientY;
@@ -129,4 +106,23 @@ window.addEventListener("mousedown", () => {
 window.addEventListener("mouseup", () => {
     mouseDown = false;
 });
+
+window.addEventListener("resize", () => {
+    app.renderer.resize(window.innerWidth, window.innerHeight);
+    app.renderer.resolution = devicePixelRatio;
+});
+
+// Create an interval to attempt playing music until it works
+const musicInterval = setInterval(() => {
+    try {
+        // Attempt to play the music
+        joyful_machinery.play()
+            .then(() => {
+                clearInterval(musicInterval); // Clear interval once music plays
+            })
+            .catch(error => {
+            });
+    } catch (error) {
+    }
+}, 1000); // Try every 3 seconds
 

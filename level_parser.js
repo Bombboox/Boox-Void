@@ -25,7 +25,7 @@ async function loadLevel(filePath) {
         activeLevel.shapes = levelData.objects.filter(obj => obj.type === 'Rectangle' || obj.type === 'Circle');
         activeLevel.points = levelData.objects.filter(obj => obj.type === 'Point');
 
-        console.log(`Level loaded successfully from ${filePath}:`, activeLevel);
+        
         return true; // Indicate success
 
     } catch (error) {
@@ -68,7 +68,6 @@ function createLevelGraphics(level, container) {
     if (!container.children.includes(levelGraphicsContainer)) {
          container.addChild(levelGraphicsContainer);
     }
-    console.log("Level graphics created.");
 }
 
 async function configureLevel(levelPath, player, worldContainer) { // Added async and worldContainer
@@ -90,7 +89,6 @@ async function configureLevel(levelPath, player, worldContainer) { // Added asyn
             if (spawnPoint) {
                 player.position.x = spawnPoint.x;
                 player.position.y = spawnPoint.y;
-                console.log(`Player positioned at spawn point: (${spawnPoint.x}, ${spawnPoint.y})`);
             } else {
                 console.warn("No spawn point found in level");
             }

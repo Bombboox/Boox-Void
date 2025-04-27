@@ -64,9 +64,8 @@ class Player {
 
     renderGraphics() {
         this.graphics.clear();
-        this.graphics.beginFill(this.color); // Use stored hex color
-        this.graphics.drawCircle(0, 0, this.radius); // Draw at the graphics object's origin
-        this.graphics.endFill();
+        this.graphics.circle(0, 0, this.radius);
+        this.graphics.fill(this.color);
     }
 
     move(deltaTime) {

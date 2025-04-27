@@ -47,6 +47,10 @@ class DefaultCannon extends Cannon {
 
     fire(angle, playerPosition) { 
         if(this.cooldown <= 0) {
+            shoot_sound.currentTime = 0;
+            shoot_sound.volume = 0.1;
+            shoot_sound.play();
+
             const spawnOffset = player.radius + this.cannonLength / 2 + 5; // Add a small buffer
             const startX = playerPosition.x + spawnOffset * Math.cos(angle);
             const startY = playerPosition.y + spawnOffset * Math.sin(angle);
