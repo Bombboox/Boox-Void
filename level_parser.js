@@ -24,7 +24,6 @@ async function loadLevel(filePath) {
         activeLevel.objects = levelData.objects;
         activeLevel.shapes = levelData.objects.filter(obj => obj.type === 'Rectangle' || obj.type === 'Circle');
         activeLevel.points = levelData.objects.filter(obj => obj.type === 'Point');
-
         
         return true; // Indicate success
 
@@ -49,18 +48,33 @@ function createLevelGraphics(level, container) {
         const graphics = new PIXI.Graphics();
         // Convert CSS color string (like #ffffff) to hex number (like 0xffffff)
         const colorString = obj.color || '#808080'; // Default gray
-        const color = parseInt(colorString.replace("#", ""), 16);
-
-        graphics.beginFill(color);
-        // Optional: Add line style for outlines
-        // graphics.lineStyle(1, 0x000000); // Black outline
+        let color;
+        
+        // Check if the color is in rgba format
+        if (colorString.startsWith('rgba')) {
+            // Parse rgba values
+            const rgba = colorString.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+            if (rgba) {
+                const r = parseInt(rgba[1]);
+                const g = parseInt(rgba[2]);
+                const b = parseInt(rgba[3]);
+                const a = parseFloat(rgba[4]);
+                color = (r << 16) | (g << 8) | b;
+                graphics.alpha = a;
+            } else {
+                color = 0x808080; // Default if rgba parsing fails
+            }
+        } else {
+            // Handle hex colors
+            color = parseInt(colorString.replace("#", ""), 16);
+        }
 
         if (obj.type === 'Rectangle') {
-            graphics.drawRect(obj.x, obj.y, obj.width, obj.height);
+            graphics.rect(obj.x, obj.y, obj.width, obj.height);
         } else if (obj.type === 'Circle') {
-            graphics.drawCircle(obj.x, obj.y, obj.radius);
+            graphics.circle(obj.x, obj.y, obj.radius);
         }
-        graphics.endFill();
+        graphics.fill({color: color});
         levelGraphicsContainer.addChild(graphics);
     });
 
@@ -92,10 +106,28 @@ async function configureLevel(levelPath, player, worldContainer) { // Added asyn
             } else {
                 console.warn("No spawn point found in level");
             }
-            
-            return true;
         }
-        
+
+        for(let i = 0; i < activeLevel.points.length; i++) {
+            const point = activeLevel.points[i];
+            switch(point.tag) {
+                case "top":
+                    worldTopBoundary = point.y * worldContainer.scale.y;
+                    break;
+                case "bottom":
+                    worldBottomBoundary = point.y * worldContainer.scale.y;
+                    break;
+                case "left":
+                    worldLeftBoundary = point.x * worldContainer.scale.x;
+                    break;
+                case "right":
+                    worldRightBoundary = point.x * worldContainer.scale.x;
+                    break;
+                case "espawn":
+                    enemies.push(new DefaultEnemySpawner(point.x, point.y));
+                    break;
+            }
+        }
         return false;
     } catch (error) {
         console.error("Error configuring level:", error);

@@ -3,6 +3,8 @@ const ctx = canvas.getContext('2d');
 const objectList = document.getElementById('object-list');
 const propertiesPanel = document.getElementById('properties-panel');
 const exportButton = document.getElementById('export-button');
+const importButton = document.getElementById('import-button');
+const importFileInput = document.getElementById('import-file-input');
 const snapToggle = document.getElementById('snap-toggle');
 
 let objects = []; // Array to hold all objects in the level
@@ -100,15 +102,46 @@ function drawObjects() {
         ctx.fillStyle = obj.color || 'blue';
         if (obj.type === 'Rectangle') {
             ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+            
+            // Draw outline with solid color (not affected by transparency)
+            ctx.strokeStyle = obj.color ? obj.color.replace(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(?:\d*(?:\.\d+)?))?\)/, 'rgb($1, $2, $3)') : 'blue';
+            ctx.lineWidth = 2 / zoomLevel;
+            ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+            
+            // Draw tag if it exists
+            if (obj.tag) {
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(obj.tag, obj.x + obj.width/2, obj.y - 5);
+            }
         } else if (obj.type === 'Circle') {
             ctx.beginPath();
             ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Draw outline with solid color
+            ctx.strokeStyle = obj.color ? obj.color.replace(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(?:\d*(?:\.\d+)?))?\)/, 'rgb($1, $2, $3)') : 'green';
+            ctx.lineWidth = 2 / zoomLevel;
+            ctx.stroke();
+            
+            // Draw tag if it exists
+            if (obj.tag) {
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(obj.tag, obj.x, obj.y - obj.radius - 5);
+            }
         } else if (obj.type === 'Point') {
             // Draw point as a small circle
             ctx.beginPath();
             ctx.arc(obj.x, obj.y, 5, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Draw outline with solid color
+            ctx.strokeStyle = obj.color ? obj.color.replace(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(?:\d*(?:\.\d+)?))?\)/, 'rgb($1, $2, $3)') : 'red';
+            ctx.lineWidth = 2 / zoomLevel;
+            ctx.stroke();
             
             // Draw tag text above the point
             ctx.fillStyle = 'white';
@@ -210,13 +243,6 @@ function getMousePos(evt) {
     const rect = canvas.getBoundingClientRect();
     let x = (evt.clientX - rect.left - panOffset.x) / zoomLevel;
     let y = (evt.clientY - rect.top - panOffset.y) / zoomLevel;
-
-    // // Snap to grid if enabled (only for create/move, not selection box)
-    // // Moved snapping logic directly into move/resize handlers
-    // if (snapToGrid && (currentTool === 'create' || (isDragging && currentTool !== 'select'))) {
-    //      x = Math.round(x / GRID_SIZE) * GRID_SIZE;
-    //      y = Math.round(y / GRID_SIZE) * GRID_SIZE;
-    // }
 
     return { x, y };
 }
@@ -405,11 +431,11 @@ function handleMouseDown(e) {
             let snappedY = snapToGrid ? Math.round(mousePos.y / GRID_SIZE) * GRID_SIZE : mousePos.y;
             
             if (currentObjectType === 'Rectangle') {
-                newObj = { type: 'Rectangle', x: snappedX, y: snappedY, width: GRID_SIZE, height: GRID_SIZE, color: 'blue' };
+                newObj = { type: 'Rectangle', x: snappedX, y: snappedY, width: GRID_SIZE, height: GRID_SIZE, color: 'blue', tag: '' };
             } else if (currentObjectType === 'Circle') {
-                newObj = { type: 'Circle', x: snappedX, y: snappedY, radius: GRID_SIZE / 2, color: 'green' };
+                newObj = { type: 'Circle', x: snappedX, y: snappedY, radius: GRID_SIZE / 2, color: 'green', tag: '' };
             } else if (currentObjectType === 'Point') {
-                newObj = { type: 'Point', x: snappedX, y: snappedY, tag: 'point', color: 'red' };
+                newObj = { type: 'Point', x: snappedX, y: snappedY, tag: '', color: 'red' };
             }
             if (newObj) {
                 objects.push(newObj);
@@ -691,6 +717,14 @@ function handleKeyDown(e) {
         e.preventDefault();
     }
     
+    // Rotate selected objects (R key)
+    if (e.key === 'r' && selectedObjects.length > 0) {
+        saveState(); // Save state before rotating
+        rotateSelectedObjects(90); // Rotate 90 degrees counter-clockwise
+        e.preventDefault(); // Prevent typing 'r' if in an input field? Maybe not needed.
+        saveState(); // Save state after rotating
+    }
+    
     // Undo (Ctrl+Z)
     if (e.ctrlKey && e.key === 'z') {
         undo();
@@ -773,10 +807,65 @@ function updatePropertiesPanel() {
 
             let input;
             if (prop === 'color') {
+                // Create a container for color and alpha
+                const colorContainer = document.createElement('div');
+                colorContainer.style.display = 'flex';
+                colorContainer.style.alignItems = 'center';
+                
+                // Color picker
                 input = document.createElement('input');
                 input.type = 'color';
-                input.value = obj[prop];
-                input.style.verticalAlign = 'middle'; // Align picker nicely
+                input.value = obj[prop].startsWith('rgba') ? rgbaToHex(obj[prop]) : obj[prop];
+                input.style.verticalAlign = 'middle';
+                
+                // Alpha slider
+                const alphaLabel = document.createElement('span');
+                alphaLabel.textContent = 'Alpha: ';
+                alphaLabel.style.marginLeft = '10px';
+                
+                const alphaSlider = document.createElement('input');
+                alphaSlider.type = 'range';
+                alphaSlider.min = '0';
+                alphaSlider.max = '1';
+                alphaSlider.step = '0.01';
+                alphaSlider.value = obj[prop].startsWith('rgba') ? getAlphaFromRgba(obj[prop]) : '1';
+                
+                // Update color when either input changes
+                const updateColor = () => {
+                    const hexColor = input.value;
+                    const alpha = parseFloat(alphaSlider.value);
+                    if (alpha < 1) {
+                        // Convert hex to rgba
+                        const r = parseInt(hexColor.slice(1, 3), 16);
+                        const g = parseInt(hexColor.slice(3, 5), 16);
+                        const b = parseInt(hexColor.slice(5, 7), 16);
+                        obj[prop] = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                    } else {
+                        obj[prop] = hexColor;
+                    }
+                    draw();
+                };
+                
+                input.addEventListener('change', () => {
+                    saveState();
+                    updateColor();
+                    saveState();
+                });
+                
+                alphaSlider.addEventListener('change', () => {
+                    saveState();
+                    updateColor();
+                    saveState();
+                });
+                
+                colorContainer.appendChild(input);
+                colorContainer.appendChild(alphaLabel);
+                colorContainer.appendChild(alphaSlider);
+                
+                propContainer.appendChild(label);
+                propContainer.appendChild(colorContainer);
+                propertiesPanel.appendChild(propContainer);
+                return;
             } else {
                 input = document.createElement('input');
                 input.type = (typeof obj[prop] === 'number') ? 'number' : 'text';
@@ -813,12 +902,72 @@ function updatePropertiesPanel() {
 
                 let input;
                  if (prop === 'color') {
+                    // Create a container for color and alpha
+                    const colorContainer = document.createElement('div');
+                    colorContainer.style.display = 'flex';
+                    colorContainer.style.alignItems = 'center';
+                    
+                    // Color picker
                     input = document.createElement('input');
                     input.type = 'color';
+                    
                     // Try to set a common value, or default if different
                     const firstColor = selectedObjects[0][prop];
-                    input.value = selectedObjects.every(o => o[prop] === firstColor) ? firstColor : '#ffffff'; 
+                    const isCommonColor = selectedObjects.every(o => o[prop] === firstColor);
+                    input.value = isCommonColor ? (firstColor.startsWith('rgba') ? rgbaToHex(firstColor) : firstColor) : '#ffffff';
                     input.style.verticalAlign = 'middle';
+                    
+                    // Alpha slider
+                    const alphaLabel = document.createElement('span');
+                    alphaLabel.textContent = 'Alpha: ';
+                    alphaLabel.style.marginLeft = '10px';
+                    
+                    const alphaSlider = document.createElement('input');
+                    alphaSlider.type = 'range';
+                    alphaSlider.min = '0';
+                    alphaSlider.max = '1';
+                    alphaSlider.step = '0.01';
+                    alphaSlider.value = isCommonColor && firstColor.startsWith('rgba') ? getAlphaFromRgba(firstColor) : '1';
+                    
+                    // Update color for all selected objects
+                    const updateColor = () => {
+                        const hexColor = input.value;
+                        const alpha = parseFloat(alphaSlider.value);
+                        
+                        selectedObjects.forEach(obj => {
+                            if (alpha < 1) {
+                                // Convert hex to rgba
+                                const r = parseInt(hexColor.slice(1, 3), 16);
+                                const g = parseInt(hexColor.slice(3, 5), 16);
+                                const b = parseInt(hexColor.slice(5, 7), 16);
+                                obj[prop] = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                            } else {
+                                obj[prop] = hexColor;
+                            }
+                        });
+                        draw();
+                    };
+                    
+                    input.addEventListener('change', () => {
+                        saveState();
+                        updateColor();
+                        saveState();
+                    });
+                    
+                    alphaSlider.addEventListener('change', () => {
+                        saveState();
+                        updateColor();
+                        saveState();
+                    });
+                    
+                    colorContainer.appendChild(input);
+                    colorContainer.appendChild(alphaLabel);
+                    colorContainer.appendChild(alphaSlider);
+                    
+                    propContainer.appendChild(label);
+                    propContainer.appendChild(colorContainer);
+                    propertiesPanel.appendChild(propContainer);
+                    return;
                  } else {
                     // Handle other common properties if needed
                  }
@@ -842,6 +991,23 @@ function updatePropertiesPanel() {
     } else {
         propertiesPanel.innerHTML = '<p>Select an object to edit properties.</p>';
     }
+}
+
+// Helper functions for color conversion
+function rgbaToHex(rgba) {
+    const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)/);
+    if (!match) return '#000000';
+    
+    const r = parseInt(match[1]);
+    const g = parseInt(match[2]);
+    const b = parseInt(match[3]);
+    
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function getAlphaFromRgba(rgba) {
+    const match = rgba.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*(\d*(?:\.\d+)?)\)/);
+    return match ? match[4] : '1';
 }
 
 function setTool(tool) {
@@ -876,6 +1042,54 @@ function exportLevel() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     console.log("Level exported:", dataStr);
+}
+
+function importLevel(file) {
+    if (!file) {
+        console.error("No file selected.");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+        try {
+            const levelData = JSON.parse(event.target.result);
+
+            if (!levelData || !Array.isArray(levelData.objects)) {
+                console.error("Invalid level format: 'objects' array not found.");
+                alert("Invalid level file format."); // User feedback
+                return;
+            }
+
+            // Load the level data
+            objects = levelData.objects; 
+            selectedObjects = []; // Clear selection
+            panOffset = { x: 0, y: 0 }; // Reset pan
+            zoomLevel = 1; // Reset zoom
+            actionHistory = []; // Reset history
+            historyIndex = -1;
+            saveState(); // Save the initial imported state
+            draw();
+            updatePropertiesPanel();
+            console.log("Level imported successfully.");
+            // Reset the file input value to allow importing the same file again
+            importFileInput.value = null; 
+
+        } catch (error) {
+            console.error("Error parsing level file:", error);
+            alert("Error reading or parsing the level file. Make sure it's valid JSON.");
+            importFileInput.value = null; // Reset input even on error
+        }
+    };
+
+    reader.onerror = (event) => {
+        console.error("Error reading file:", event.target.error);
+        alert("Error reading the selected file.");
+        importFileInput.value = null; // Reset input on error
+    };
+
+    reader.readAsText(file);
 }
 
 // Event Listeners
@@ -956,7 +1170,117 @@ document.addEventListener('DOMContentLoaded', () => {
         updateZoomDisplay(); 
         setInterval(updateZoomDisplay, 200); // Update slightly less often
     }
+
+    // Import Button Listener
+    importButton.addEventListener('click', () => {
+        importFileInput.click(); // Trigger the hidden file input
+    });
+
+    // File Input Change Listener
+    importFileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            importLevel(file);
+        }
+    });
 });
 
 // Initial draw
 resizeCanvas();
+
+// Helper function to calculate the center of a group of objects
+function getGroupCenter(objectGroup) {
+    if (!objectGroup || objectGroup.length === 0) {
+        return { x: 0, y: 0 };
+    }
+
+    if (objectGroup.length === 1) {
+        const obj = objectGroup[0];
+        if (obj.type === 'Rectangle') {
+            return { x: obj.x + obj.width / 2, y: obj.y + obj.height / 2 };
+        } else { // Circle or Point
+            return { x: obj.x, y: obj.y };
+        }
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+    objectGroup.forEach(obj => {
+        let objMinX, objMinY, objMaxX, objMaxY;
+        if (obj.type === 'Rectangle') {
+            objMinX = obj.x;
+            objMinY = obj.y;
+            objMaxX = obj.x + obj.width;
+            objMaxY = obj.y + obj.height;
+        } else if (obj.type === 'Circle') {
+            objMinX = obj.x - obj.radius;
+            objMinY = obj.y - obj.radius;
+            objMaxX = obj.x + obj.radius;
+            objMaxY = obj.y + obj.radius;
+        } else { // Point
+            objMinX = obj.x;
+            objMinY = obj.y;
+            objMaxX = obj.x;
+            objMaxY = obj.y;
+        }
+        minX = Math.min(minX, objMinX);
+        minY = Math.min(minY, objMinY);
+        maxX = Math.max(maxX, objMaxX);
+        maxY = Math.max(maxY, objMaxY);
+    });
+
+    return { x: minX + (maxX - minX) / 2, y: minY + (maxY - minY) / 2 };
+}
+
+function rotateSelectedObjects(degrees) {
+    if (selectedObjects.length === 0) return;
+
+    const angleRad = degrees * (Math.PI / 180); // Convert degrees to radians
+    const cos = Math.cos(angleRad);
+    const sin = Math.sin(angleRad);
+
+    const groupCenter = getGroupCenter(selectedObjects);
+
+    selectedObjects.forEach(obj => {
+        let objCenterX, objCenterY;
+
+        // Calculate object's current center
+        if (obj.type === 'Rectangle') {
+            objCenterX = obj.x + obj.width / 2;
+            objCenterY = obj.y + obj.height / 2;
+        } else { // Circle or Point
+            objCenterX = obj.x;
+            objCenterY = obj.y;
+        }
+
+        // Calculate position relative to group center
+        const relX = objCenterX - groupCenter.x;
+        const relY = objCenterY - groupCenter.y;
+
+        // Rotate the relative position
+        // Using 90-degree rotation matrix: x' = -y, y' = x
+        const rotatedRelX = -relY; // relX * cos - relY * sin; (For 90deg, cos=0, sin=1)
+        const rotatedRelY = relX;  // relX * sin + relY * cos; (For 90deg, cos=0, sin=1)
+
+        // Calculate new absolute center position
+        const newCenterX = groupCenter.x + rotatedRelX;
+        const newCenterY = groupCenter.y + rotatedRelY;
+
+        // Update object position based on new center
+        if (obj.type === 'Rectangle') {
+            // Swap width and height for 90-degree rotation
+            const oldWidth = obj.width;
+            obj.width = obj.height;
+            obj.height = oldWidth;
+            // Recalculate top-left corner from the new center and dimensions
+            obj.x = newCenterX - obj.width / 2;
+            obj.y = newCenterY - obj.height / 2;
+        } else { // Circle or Point
+            obj.x = newCenterX;
+            obj.y = newCenterY;
+        }
+    });
+
+    updatePropertiesPanel(); // Update panel if dimensions changed
+    draw();
+}

@@ -1,12 +1,14 @@
 class Bullet {
-    constructor(x, y, damage, speed, radius, angle, worldContainer) {
+    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
         this.position = vector(x, y);
         this.damage = damage;
         this.speed = speed;
+        this.pierce = pierce;
         this.radius = radius;
         this.angle = angle;
         this.lifeTime = 3000;
         this.worldContainer = worldContainer;
+        this.remainingHits = pierce;
 
         this.graphics = new PIXI.Graphics();
         this.graphics.position.set(this.position.x, this.position.y);
@@ -19,6 +21,15 @@ class Bullet {
     }
 
     checkCollision() {
+        // check collision with enemies
+        for (const enemy of enemies) {
+            if (checkCollision(this, enemy)) {
+                this.hit(enemy);
+                activeEnemy = enemy;
+                healthBarTimer = healthBarDuration;
+            }
+        }
+        
         // check collision with level obstacles
         for (const shape of activeLevel.shapes) {
             const shapeCollider = {
@@ -37,11 +48,19 @@ class Bullet {
         return false; 
     }
 
+    hit(enemy) {
+        enemy.damage(this.damage);
+        this.pierce--;
+        if(this.pierce <= 0) {
+            this.destroy();
+        }
+    }
+
     renderGraphics() {
         this.graphics.clear();
-        this.graphics.beginFill(0xffffff); // White
-        this.graphics.drawCircle(0, 0, this.radius);
-        this.graphics.endFill();
+        this.graphics.circle(0, 0, this.radius);
+        this.graphics.fill({color: 0xffffff});
+
     }
 
     update(deltaTime) {
@@ -51,14 +70,12 @@ class Bullet {
             return;
         }
 
-        if (this.checkCollision()) {
-            return;
-        }
-
         this.position.x += this.speed * Math.cos(this.angle) * deltaTime;
         this.position.y += this.speed * Math.sin(this.angle) * deltaTime;
 
         this.graphics.position.set(this.position.x, this.position.y);
+        
+        this.checkCollision();
     }
 
     destroy() {
@@ -77,7 +94,72 @@ class Bullet {
 }
 
 class DefaultBullet extends Bullet {
-    constructor(x, y, damage, speed, radius, angle, worldContainer) {
-        super(x, y, damage, speed, radius, angle, worldContainer);
+    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
+        super(x, y, damage, speed, pierce, radius, angle, worldContainer);
+    }
+}
+
+class ExplosiveBullet extends Bullet {
+    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
+        super(x, y, damage, speed, pierce, radius, angle, worldContainer);
+    }
+
+    renderGraphics() {
+        super.renderGraphics();
+        this.graphics.circle(0, 0, this.radius);
+        this.graphics.fill({color: 0x808080});
+    }
+
+    hit(enemy) {
+        enemy.damage(this.damage);
+        this.explode();
+        this.destroy();
+    }
+
+    explode() {
+        bullets.push(new Explosion(this.position.x, this.position.y, this.damage, this.speed, this.pierce, this.radius, this.angle, this.worldContainer));
+    } 
+
+    checkCollision() {
+        if(super.checkCollision()) {
+            this.explode();
+        }
+    }
+}
+
+class Explosion extends Bullet {
+    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
+        super(x, y, damage, speed, pierce, radius, angle, worldContainer);
+        this.lifeTime = 150;
+        this.speed = 0;
+        this.pierce = Infinity;
+    }
+
+    renderGraphics() {
+        super.renderGraphics();
+        this.graphics.circle(0, 0, this.radius);
+        this.graphics.fill({color: 0xffff00});
+    }
+
+    update(deltaTime) {
+        this.lifeTime -= deltaTime;
+        if(this.lifeTime <= 0) {
+            this.destroy();
+            return;
+        }
+        this.radius += 0.5 * deltaTime;
+        // Update the size of the explosion graphics to match the new radius
+        this.graphics.clear();
+        this.renderGraphics();
+        this.checkCollision();
+    }
+
+    checkCollision() {
+        // check collision with enemies
+        for (const enemy of enemies) {
+            if (checkCollision(this, enemy)) {
+                this.hit(enemy);
+            }
+        }
     }
 }

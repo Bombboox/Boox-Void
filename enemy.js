@@ -4,11 +4,16 @@ class Enemy {
         this.target = vector(x, y);
         this.width = width;
         this.height = height;
+        this.maxHp = hp;
         this.hp = hp;
         this.speed = speed;
         this.timeStuck = 0; // Time in milliseconds the enemy has been stuck
         this.stuckThreshold = 500; // 0.5 seconds threshold
         this.hitSound = hit_sound;
+        this.hitSound.volume = 0.6;
+        this.name = "ERROR!";
+        this.invincibilityFrames = 0;
+        this.invincibilityDuration = 50;
 
         // PixiJS Graphics - Must be added to container by subclass or externally
         this.graphics = new PIXI.Graphics();
@@ -42,21 +47,14 @@ class Enemy {
         throw new Error("renderGraphics() must be implemented by subclass");
     }
 
-    bulletCollision() {
-        for(let i = 0; i < bullets.length; i++) {
-            if(checkCollision(this, bullets[i])) {
-                this.hp -= bullets[i].damage;
-                bullets[i].destroy();
-                this.hitSound.currentTime = 0;
-                this.hitSound.play(
-                    {
-                        volume: 1,
-                    }
-                );
-                return true;
-            }
+    damage(amount) {
+        this.hp -= amount;
+        if(this.hp <= 0) {
+            this.destroy(worldContainer);
+            return;
         }
-        return false;
+        this.hitSound.currentTime = 0;
+        this.hitSound.play();
     }
 
     destroy(worldContainer) { // Accept container to remove graphics
@@ -93,6 +91,7 @@ class Enemy {
             const obstacles = [...activeLevel.shapes, ...enemies.filter(e => e !== this)]; // Combine shapes and other enemies
 
             for (const obstacle of obstacles) {
+                if(obstacle.tag == "epassable") continue;
                 let obstacleCollider;
                 if (obstacle instanceof Enemy) { // Collision with another enemy (Rect vs Rect)
                      obstacleCollider = {
@@ -181,15 +180,22 @@ class Enemy {
 
 class DefaultEnemy extends Enemy {
     constructor(x, y, worldContainer) {
-        super(x, y, 60, 60, 10, 0.25);
+        super(
+            x,   // x
+            y,   // y
+            60,  // width
+            60,  // height
+            10,  // hp
+            0.25 // speed
+        );
+        this.name = "Default Enemy";
         this.initializeGraphics(worldContainer); 
     }
 
     renderGraphics() {
         this.graphics.clear();
-        this.graphics.beginFill(0xff0000); // Red
-        this.graphics.drawRect(0, 0, this.width, this.height);
-        this.graphics.endFill();
+        this.graphics.rect(0, 0, this.width, this.height);
+        this.graphics.fill({color: 0xff0000});
     }
 
     update(deltaTime, worldContainer) { 
@@ -206,6 +212,5 @@ class DefaultEnemy extends Enemy {
             this.destroy(worldContainer); 
             return; 
         }
-        this.bulletCollision();
     }
 }

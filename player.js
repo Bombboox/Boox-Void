@@ -27,11 +27,11 @@ class Player {
     update(mouseX, mouseY, mouseDown, deltaTime) {
         if (!this.isGraphicsInitialized) return;
 
-        const screenCenterX = app.screen.width / 2;
-        const screenCenterY = app.screen.height / 2;
-
-        // Calculate angle relative to screen center
-        this.angle = Math.atan2(mouseY - screenCenterY, mouseX - screenCenterX);
+        const worldMouseX = (mouseX - worldContainer.x);
+        const worldMouseY = (mouseY - worldContainer.y);
+        
+        // Calculate angle from player to mouse position
+        this.angle = Math.atan2(worldMouseY - this.position.y, worldMouseX - this.position.x);
 
         this.move(deltaTime); // Pass deltaTime for movement calculation
 

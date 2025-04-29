@@ -9,11 +9,10 @@ async function initializeApp() {
         backgroundColor: 0x000000, // Black background
         resolution: devicePixelRatio,
         autoDensity: true,
-        antialias: false,
+        antialias: true,
     });
     document.body.appendChild(app.canvas);
     appInitialized = true;
-    
 
     main();
 }
@@ -29,6 +28,7 @@ const gridSize = 50;
 const gridColor = 0xffffff; 
 const gridAlpha = 0.25;
 const gridGraphics = new PIXI.Graphics();
+var minimapEnabled = true;
 
 const keyboard = [];
 
@@ -37,9 +37,22 @@ var mouseY = 0;
 var mouseDown = false;
 var deltaTime = 0;
 
+var worldTopBoundary = -1000;
+var worldBottomBoundary = 1000;
+var worldLeftBoundary = -1000;
+var worldRightBoundary = 1000;
+
 // FPS Counter Text
-const fpsText = new PIXI.Text('FPS: 0', { fontFamily: 'Arial', fontSize: 16, fill: 0xffffff });
+const fpsText = new PIXI.Text({text: "FPS: 0", style: {fontFamily: 'Arial', fontSize: 16, fill: 0xffffff }});
 fpsText.position.set(10, 10);
+
+const LEVEL_ONE_WAVES = new Waves([
+    new Wave(1, 1),
+    new Wave(2, 1),
+    new Wave(5, 1.5)
+], worldContainer);
+
+let minimap = null; // Declare minimap variable
 
 const main = () => {
     if (!appInitialized) {
@@ -49,20 +62,20 @@ const main = () => {
     
     app.stage.addChild(worldContainer);
     app.stage.addChild(fpsText);
-    worldContainer.addChild(gridGraphics);
-    
+
+    createHealthBar(worldContainer);
     player.initializeGraphics(worldContainer); 
-    player.cannons.push(new DefaultCannon(worldContainer));
+    player.cannons.push(new ExplosiveCannon(worldContainer));
 
-    enemies.push(new DefaultEnemy(300, 300, worldContainer));
-    enemies.push(new DefaultEnemy(400, 300, worldContainer));
-    enemies.push(new DefaultEnemy(500, 300, worldContainer));
-    enemies.push(new DefaultEnemy(600, 300, worldContainer));
-    enemies.push(new DefaultEnemy(700, 300, worldContainer));
+    configureLevel("levels/level_1.json", player, worldContainer);
 
-    configureLevel("levels/level_1.json", player, worldContainer); 
+    minimap = new Minimap(app, player, enemies, activeLevel, {
+        size: 180, 
+        padding: 15,
+        viewRadius: 2000 
+    });
 
-    joyful_machinery.volume = 0.1;
+    joyful_machinery.volume = 0.25;
     joyful_machinery.loop = true;
     app.ticker.add(gameLoop);
 }
@@ -81,8 +94,27 @@ const gameLoop = (ticker) => {
         enemies[i].update(deltaTime, worldContainer); 
     }
 
-    worldContainer.x = app.screen.width / 2 - player.position.x * worldContainer.scale.x;
-    worldContainer.y = app.screen.height / 2 - player.position.y * worldContainer.scale.y;
+    // Update the minimap
+    if (minimap && minimapEnabled) {
+        minimap.update();
+    }
+
+    // Center the view on the player
+    let x = app.screen.width / 2 - player.position.x * worldContainer.scale.x;
+    let y = app.screen.height / 2 - player.position.y * worldContainer.scale.y;
+
+    // Calculate the correct clamping boundaries for the worldContainer position
+    const minContainerX = app.screen.width - worldRightBoundary * worldContainer.scale.x;
+    const maxContainerX = -worldLeftBoundary * worldContainer.scale.x;
+    const minContainerY = app.screen.height - worldBottomBoundary * worldContainer.scale.y;
+    const maxContainerY = -worldTopBoundary * worldContainer.scale.y;
+
+    // Apply clamping to keep the view within world boundaries, using correct min/max order
+    worldContainer.x = clamp(x, minContainerX, maxContainerX);
+    worldContainer.y = clamp(y, minContainerY, maxContainerY);
+
+    drawHealthBar(worldContainer, deltaTime);
+    LEVEL_ONE_WAVES.update(deltaTime, enemies);
 
     fpsText.text = `FPS: ${Math.round(app.ticker.FPS)}`;
 }
@@ -93,6 +125,13 @@ window.addEventListener("mousemove", (event) => {
 
 window.addEventListener("keydown", (event) => {
     keyboard[event.key] = true;
+
+    switch(event.key) {
+        case "m":
+            minimapEnabled = !minimapEnabled;
+            minimap.graphics.clear();
+            break;
+    }
 });
 
 window.addEventListener("keyup", (event) => {
@@ -124,5 +163,5 @@ const musicInterval = setInterval(() => {
             });
     } catch (error) {
     }
-}, 1000); // Try every 3 seconds
+}, 1000); 
 
