@@ -195,7 +195,9 @@ window.addEventListener("resize", () => {
 
 function destroyAllEnemies() {
     for(let i = enemies.length - 1; i >= 0; i--) {
-        enemies[i].destroy(worldContainer);
+        if(enemies[i]) {
+            enemies[i].destroy(worldContainer);
+        }
     }
 
     for(let i = enemy_bullets.length - 1; i >= 0; i--) {
