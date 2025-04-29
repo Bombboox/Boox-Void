@@ -126,6 +126,9 @@ async function configureLevel(levelPath, player, worldContainer) { // Added asyn
                 case "espawn":
                     enemies.push(new DefaultEnemySpawner(point.x, point.y));
                     break;
+                case "bspawn":
+                    enemies.push(new DefaultBossSpawner(point.x, point.y));
+                    break;
             }
         }
         return false;

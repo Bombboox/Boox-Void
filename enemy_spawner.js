@@ -39,10 +39,24 @@ class EnemySpawner {
             this.spawns_remaining--;
         }
     }
+
+    destroy(worldContainer) { // Accept container to remove graphics
+        const index = enemies.indexOf(this);
+        if (index !== -1) {
+            enemies.splice(index, 1);
+        }
+    }
 }
 
 class DefaultEnemySpawner extends EnemySpawner {
     constructor(x, y) {
         super(x, y, DefaultEnemy, 3000, 0);
+    }
+}
+
+
+class DefaultBossSpawner extends EnemySpawner {
+    constructor(x, y) {
+        super(x, y, DefaultBoss, 0, 0);
     }
 }

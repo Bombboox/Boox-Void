@@ -9,16 +9,34 @@ class Player {
         this.angle = 0;
         this.armor = null;
         this.baseSpeed = 200; // Speed in pixels per second
+        this.alive = true; // Track if player is alive
+        this.cameraFollow = true;
 
         // PixiJS Graphics
         this.graphics = new PIXI.Graphics();
         this.isGraphicsInitialized = false;
+        
+        // Death text
+        this.deathText = new PIXI.Text({
+            text: "YOU DIED",
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 48,
+                fill: 0xff0000,
+                align: 'center',
+                fontWeight: 'bold'
+            }
+        });
+        this.deathText.anchor.set(0.5);
+        this.deathText.visible = false;
+        this.deathText.zIndex = 1000;
     }
 
     // Call this after PixiJS app and worldContainer are ready
     initializeGraphics(worldContainer) {
         if (!this.isGraphicsInitialized) {
             worldContainer.addChild(this.graphics);
+            worldContainer.addChild(this.deathText);
             this.isGraphicsInitialized = true;
             this.renderGraphics(); // Initial draw
         }
@@ -26,29 +44,32 @@ class Player {
 
     update(mouseX, mouseY, mouseDown, deltaTime) {
         if (!this.isGraphicsInitialized) return;
+        
+        if (!this.alive) {
+            // Position death text at player's last position
+            this.deathText.position.set(this.position.x, this.position.y);
+            this.deathText.visible = true;
+            return;
+        }
 
         const worldMouseX = (mouseX - worldContainer.x);
         const worldMouseY = (mouseY - worldContainer.y);
         
-        // Calculate angle from player to mouse position
         this.angle = Math.atan2(worldMouseY - this.position.y, worldMouseX - this.position.x);
 
-        this.move(deltaTime); // Pass deltaTime for movement calculation
-
-        // Update graphics position
+        this.move(deltaTime); 
         this.graphics.position.set(this.position.x, this.position.y);
 
-        // Update cannon graphics positions and rotations
         for(let i = 0; i < this.cannons.length; i++) {
             const cannon = this.cannons[i];
-            // Calculate offset position for the cannon relative to the player center
-            const offset = this.radius + 10; // Adjust offset as needed
+
+            const offset = this.radius + 10; 
             const cannonX = offset * Math.cos(this.angle);
             const cannonY = offset * Math.sin(this.angle);
-            // Cannons are added to the world container, but positioned relative to player
+
             cannon.graphics.position.set(this.position.x + cannonX, this.position.y + cannonY);
             cannon.graphics.rotation = this.angle;
-            cannon.update(deltaTime); // Update cannon cooldown, etc.
+            cannon.update(deltaTime); 
         }
 
         // Handle firing
@@ -59,16 +80,62 @@ class Player {
             }
         }
 
-        this.renderGraphics(); // Redraw player graphics (if needed, e.g., color change)
+        this.renderGraphics(); 
+        this.checkEnemyCollision();
     }
 
     renderGraphics() {
         this.graphics.clear();
-        this.graphics.circle(0, 0, this.radius);
-        this.graphics.fill(this.color);
+        if (this.alive) {
+            this.graphics.circle(0, 0, this.radius);
+            this.graphics.fill(this.color);
+        }
+    }
+    
+    die() {
+        this.alive = false;
+        this.graphics.clear(); // Clear player graphics
+        this.deathText.visible = true;
+        
+        for(let cannon of this.cannons) {
+            cannon.graphics.visible = false;
+        }
+    }
+
+    revive() {
+        this.alive = true;
+        this.deathText.visible = false;
+
+        for(let cannon of this.cannons) {
+            cannon.graphics.visible = true;
+        }
+    }
+    
+    checkEnemyCollision() {
+        if (!this.alive) return;
+        
+        const playerCollider = { 
+            position: vector(this.position.x, this.position.y), 
+            radius: this.radius 
+        };
+        
+        for (const enemy of enemies) {
+            const enemyCollider = {
+                position: vector(enemy.position.x, enemy.position.y),
+                width: enemy.width,
+                height: enemy.height
+            };
+            
+            if (checkCollision(playerCollider, enemyCollider)) {
+                this.die();
+                return;
+            }
+        }
     }
 
     move(deltaTime) {
+        if (!this.alive) return;
+        
         const moveSpeed = (this.armor ? this.armor.speed + this.baseSpeed : this.baseSpeed) * (deltaTime / 1000);
         let deltaX = 0;
         let deltaY = 0;

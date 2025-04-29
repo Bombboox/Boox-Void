@@ -22,6 +22,7 @@ initializeApp();
 const worldContainer = new PIXI.Container();
 const player = new Player(0, 0, 20, 0xffffff); 
 const bullets = [];
+const enemy_bullets = [];
 const enemies = [];
 
 const gridSize = 50; 
@@ -42,15 +43,34 @@ var worldBottomBoundary = 1000;
 var worldLeftBoundary = -1000;
 var worldRightBoundary = 1000;
 
+var enemiesPaused = false;
+
 // FPS Counter Text
 const fpsText = new PIXI.Text({text: "FPS: 0", style: {fontFamily: 'Arial', fontSize: 16, fill: 0xffffff }});
 fpsText.position.set(10, 10);
 
-const LEVEL_ONE_WAVES = new Waves([
-    new Wave(1, 1),
-    new Wave(2, 1),
-    new Wave(5, 1.5)
-], worldContainer);
+const LEVEL_ONE_WAVES = new Waves(worldContainer, [
+    new Wave(1, {
+        "DefaultEnemy": 1,
+    }),
+
+    new Wave(1, {
+        "DefaultEnemy": 2,
+    }),
+
+    new Wave(1, {
+        "DefaultEnemy": 5,
+        "DefaultBoss": 1
+    }, () => {
+        stopAllMusic();
+        playMusic(boss_music);
+    }),
+    new Wave(0, {
+    }, () => {
+        stopAllMusic();
+        playMusic(victory_music);
+    })
+]);
 
 let minimap = null; // Declare minimap variable
 
@@ -65,7 +85,7 @@ const main = () => {
 
     createHealthBar(worldContainer);
     player.initializeGraphics(worldContainer); 
-    player.cannons.push(new ExplosiveCannon(worldContainer));
+    player.cannons.push(new DefaultCannon(worldContainer));
 
     configureLevel("levels/level_1.json", player, worldContainer);
 
@@ -77,7 +97,11 @@ const main = () => {
 
     joyful_machinery.volume = 0.25;
     joyful_machinery.loop = true;
+    boss_music.volume = 0.25;
+    boss_music.loop = true;
+
     app.ticker.add(gameLoop);
+    playMusic(joyful_machinery);
 }
 
 const gameLoop = (ticker) => {
@@ -88,6 +112,11 @@ const gameLoop = (ticker) => {
 
     for (let i = bullets.length - 1; i >= 0; i--) { 
         bullets[i].update(deltaTime, worldContainer);
+    }
+
+    // Update enemy bullets
+    for (let i = enemy_bullets.length - 1; i >= 0; i--) { 
+        enemy_bullets[i].update(deltaTime, worldContainer);
     }
 
     for (let i = enemies.length - 1; i >= 0; i--) { 
@@ -110,8 +139,10 @@ const gameLoop = (ticker) => {
     const maxContainerY = -worldTopBoundary * worldContainer.scale.y;
 
     // Apply clamping to keep the view within world boundaries, using correct min/max order
-    worldContainer.x = clamp(x, minContainerX, maxContainerX);
-    worldContainer.y = clamp(y, minContainerY, maxContainerY);
+    if(player.cameraFollow) {
+        worldContainer.x = clamp(x, minContainerX, maxContainerX);
+        worldContainer.y = clamp(y, minContainerY, maxContainerY);
+    }
 
     drawHealthBar(worldContainer, deltaTime);
     LEVEL_ONE_WAVES.update(deltaTime, enemies);
@@ -131,6 +162,17 @@ window.addEventListener("keydown", (event) => {
             minimapEnabled = !minimapEnabled;
             minimap.graphics.clear();
             break;
+        case "r":
+            if(!player.alive) {
+                player.revive();
+
+                destroyAllEnemies();
+                stopAllMusic(); 
+
+                playMusic(joyful_machinery);
+                configureLevel("levels/level_1.json", player, worldContainer);
+                LEVEL_ONE_WAVES.reset();
+            }
     }
 });
 
@@ -151,17 +193,40 @@ window.addEventListener("resize", () => {
     app.renderer.resolution = devicePixelRatio;
 });
 
-// Create an interval to attempt playing music until it works
-const musicInterval = setInterval(() => {
-    try {
-        // Attempt to play the music
-        joyful_machinery.play()
-            .then(() => {
-                clearInterval(musicInterval); // Clear interval once music plays
-            })
-            .catch(error => {
-            });
-    } catch (error) {
+function destroyAllEnemies() {
+    for(let i = enemies.length - 1; i >= 0; i--) {
+        enemies[i].destroy(worldContainer);
     }
-}, 1000); 
 
+    for(let i = enemy_bullets.length - 1; i >= 0; i--) {
+        enemy_bullets[i].destroy(worldContainer);
+    }
+}
+
+function stopAllMusic() {
+    joyful_machinery.pause();
+    joyful_machinery.currentTime = 0;
+    boss_music.pause();
+    boss_music.currentTime = 0;
+}
+
+function playMusic(song) {
+    // If music is already playing, restart it
+    if (!song.paused) {
+        song.currentTime = 0;
+        return;
+    }
+    
+    const musicInterval = setInterval(() => {
+        try {
+            // Attempt to play the music
+            song.play()
+                .then(() => {
+                    clearInterval(musicInterval); // Clear interval once music plays
+                })
+                .catch(error => {
+                });
+        } catch (error) {
+        }
+    }, 1000); 
+}

@@ -140,3 +140,7 @@ function checkCollision(hb1, hb2) {
     
     return distanceSquared < (circle.radius * circle.radius);
 }
+
+function lerp(start, end, t) {
+    return start + t * (end - start);
+}

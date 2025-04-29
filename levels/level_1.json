@@ -278,7 +278,7 @@
     {
       "type": "Rectangle",
       "x": -200,
-      "y": 1700,
+      "y": -2100,
       "width": 50,
       "height": 300,
       "color": "rgba(0, 0, 0, 0)",
@@ -287,6 +287,33 @@
     {
       "type": "Rectangle",
       "x": 50,
+      "y": -2100,
+      "width": 50,
+      "height": 300,
+      "color": "rgba(0, 0, 0, 0)",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -200,
+      "y": -2100,
+      "width": 300,
+      "height": 50,
+      "color": "rgba(0, 0, 0, 0)",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 50,
+      "y": 1700,
+      "width": 50,
+      "height": 300,
+      "color": "rgba(0, 0, 0, 0)",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -200,
       "y": 1700,
       "width": 50,
       "height": 300,
@@ -304,26 +331,8 @@
     },
     {
       "type": "Rectangle",
-      "x": 50,
-      "y": -2100,
-      "width": 50,
-      "height": 300,
-      "color": "rgba(0, 0, 0, 0)",
-      "tag": ""
-    },
-    {
-      "type": "Rectangle",
-      "x": -200,
-      "y": -2100,
-      "width": 50,
-      "height": 300,
-      "color": "rgba(0, 0, 0, 0)",
-      "tag": ""
-    },
-    {
-      "type": "Rectangle",
-      "x": -200,
-      "y": -2100,
+      "x": -2050,
+      "y": 50,
       "width": 300,
       "height": 50,
       "color": "rgba(0, 0, 0, 0)",
@@ -333,15 +342,6 @@
       "type": "Rectangle",
       "x": -2050,
       "y": -200,
-      "width": 300,
-      "height": 50,
-      "color": "rgba(0, 0, 0, 0)",
-      "tag": ""
-    },
-    {
-      "type": "Rectangle",
-      "x": -2050,
-      "y": 50,
       "width": 300,
       "height": 50,
       "color": "rgba(0, 0, 0, 0)",
@@ -359,7 +359,7 @@
     {
       "type": "Rectangle",
       "x": 1650,
-      "y": 50,
+      "y": -200,
       "width": 300,
       "height": 50,
       "color": "rgba(0, 0, 0, 0)",
@@ -368,7 +368,7 @@
     {
       "type": "Rectangle",
       "x": 1650,
-      "y": -200,
+      "y": 50,
       "width": 300,
       "height": 50,
       "color": "rgba(0, 0, 0, 0)",
@@ -382,6 +382,13 @@
       "height": 300,
       "color": "rgba(0, 0, 0, 0)",
       "tag": ""
+    },
+    {
+      "type": "Point",
+      "x": -50,
+      "y": -1900,
+      "tag": "bspawn",
+      "color": "red"
     }
   ]
 }

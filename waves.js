@@ -11,7 +11,7 @@ const praises = [
 ];
 
 class Waves {
-    constructor(waves, worldContainer) {
+    constructor(worldContainer, waves, special_instructions = {}) {
         this.worldContainer = worldContainer;
 
         this.waves = waves;
@@ -233,6 +233,7 @@ class Waves {
             
             if(this.waves[this.current_wave].completed()) {
                 this.current_wave++;
+                this.enemiesRemainingText.visible = false;
                 
                 // Show praise text when a wave is completed
                 if (this.current_wave > 0) {
@@ -250,12 +251,11 @@ class Waves {
     
         if(!this.in_between_waves) {
             this.timer += deltaTime;
-            if(this.timer >= this.delayBetweenWaves) {
-                console.log("Spawning wave " + this.current_wave);
+            if(this.timer >= this.delayBetweenWaves) { 
+                this.enemiesRemainingText.visible = true;
                 
                 // Calculate total enemies in this wave
-                const enemySpawners = enemies.filter(enemy => enemy instanceof EnemySpawner || Object.getPrototypeOf(enemy.constructor).name === 'EnemySpawner');
-                this.totalEnemiesInWave = enemySpawners.length * this.waves[this.current_wave].num_enemies;
+                this.totalEnemiesInWave = this.waves[this.current_wave].getTotalEnemies();
                 this.remainingEnemies = this.totalEnemiesInWave;
                 
                 this.waves[this.current_wave].spawn_wave(enemies);
@@ -267,33 +267,83 @@ class Waves {
             }
         }
     }
+
+    reset() {
+        this.current_wave = 0;
+        this.completed = false;
+        this.in_between_waves = false;
+        this.timer = 0;
+        this.totalEnemiesInWave = 0;
+        this.remainingEnemies = 0;
+        
+        if (this.waveText) {
+            this.waveText.visible = false;
+        }
+        if (this.enemiesRemainingText) {
+            this.enemiesRemainingText.visible = false;
+        }
+        if (this.praiseText) {
+            this.praiseText.visible = false;
+            this.showingPraiseText = false;
+        }
+    }
 }
 
 class Wave {
-    constructor(num_enemies, power_scale) {
-        this.num_enemies = num_enemies;
+    constructor(power_scale = 1.0, enemyTypes = null, special_instructions = null) {
         this.power_scale = power_scale;
+        this.enemyTypes = enemyTypes || {};
+        this.special_instructions = special_instructions;
     }
 
     spawn_wave(enemies) {
         let enemy_spawners = enemies.filter(enemy => enemy instanceof EnemySpawner || Object.getPrototypeOf(enemy.constructor).name === 'EnemySpawner');
+        
+        if (Object.keys(this.enemyTypes).length === 0) {
+            for(let spawner of enemy_spawners) {
+                spawner.power_scale = this.power_scale;
+                spawner.spawns_remaining = 1; 
+            }
+            return;
+        }
+        
         for(let spawner of enemy_spawners) {
             spawner.power_scale = this.power_scale;
-            spawner.spawns_remaining = this.num_enemies;
+ 
+            const spawnerType = spawner.constructor.name;
+            let enemyType = null;
+            if (spawnerType.endsWith('Spawner')) {
+                enemyType = spawnerType.replace('Spawner', '');
+            }
+            
+            if (enemyType && this.enemyTypes[enemyType]) {
+                spawner.spawns_remaining = this.enemyTypes[enemyType];
+            } else {
+                spawner.spawns_remaining = 0;
+            }
         }
+
+        if(this.special_instructions) {
+            this.special_instructions();
+        }
+    }
+    
+    getTotalEnemies() {
+        if (Object.keys(this.enemyTypes).length === 0) {
+            return 1;
+        }
+        
+        return Object.values(this.enemyTypes).reduce((total, count) => total + count, 0);
     }
 
     completed() {
-        // First check if all spawners have finished spawning
         let enemy_spawners = enemies.filter(enemy => enemy instanceof EnemySpawner || Object.getPrototypeOf(enemy.constructor).name === 'EnemySpawner');
         for(let spawner of enemy_spawners) {
             if(spawner.spawns_remaining > 0) return false;
         }
         
-        // Then check if there are any regular enemies remaining
         let regular_enemies = enemies.filter(enemy => !(enemy instanceof EnemySpawner) && Object.getPrototypeOf(enemy.constructor).name !== 'EnemySpawner');
         if(regular_enemies.length > 0) return false;
-        console.log("wave completed");
         return true;
     }
 }

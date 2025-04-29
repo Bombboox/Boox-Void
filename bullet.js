@@ -79,16 +79,29 @@ class Bullet {
     }
 
     destroy() {
-        if (this.worldContainer) {
+        if (this.graphics && this.worldContainer) { // Check if graphics exist before removing
             this.worldContainer.removeChild(this.graphics);
-        } else {
+        } else if (!this.worldContainer) {
             console.warn("Bullet trying to destroy graphics without worldContainer reference.");
         }
-        this.graphics.destroy();
+        
+        // Check if graphics exist and haven't been destroyed already
+        if (this.graphics && !this.graphics._destroyed) {
+             this.graphics.destroy();
+        }
+        this.graphics = null; // Set graphics to null after destroying
 
-        const index = bullets.indexOf(this);
+        // Remove from player bullets array
+        let index = bullets.indexOf(this);
         if (index !== -1) {
             bullets.splice(index, 1);
+            return; // Exit if found and removed from player bullets
+        }
+
+        // Remove from enemy bullets array if not found in player bullets
+        index = enemy_bullets.indexOf(this);
+        if (index !== -1) {
+            enemy_bullets.splice(index, 1);
         }
     }
 }
@@ -161,5 +174,40 @@ class Explosion extends Bullet {
                 this.hit(enemy);
             }
         }
+    }
+}
+
+class EnemyBullet extends Bullet {
+    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
+        super(x, y, damage, speed, pierce, radius, angle, worldContainer);
+    }
+
+    renderGraphics() {
+        super.renderGraphics();
+        this.graphics.circle(0, 0, this.radius);
+        this.graphics.fill({color: 0x808080});
+    }   
+
+    checkCollision() {
+        for (const shape of activeLevel.shapes) {
+            const shapeCollider = {
+                position: vector(shape.x, shape.y),
+                ...(shape.type === 'Rectangle' ? { width: shape.width, height: shape.height } : {}),
+                ...(shape.type === 'Circle' ? { radius: shape.radius } : {})
+            };
+
+            const bulletCollider = { position: this.position, radius: this.radius };
+
+            if (checkCollision(bulletCollider, shapeCollider)) {
+                this.destroy(); 
+                return true; 
+            }
+        }
+
+        if(checkCollision(this, player)) {
+            this.destroy();
+            player.die();
+        }
+        return false; 
     }
 }

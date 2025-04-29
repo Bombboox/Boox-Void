@@ -10,6 +10,13 @@ class Cannon {
 
         this.graphics = new PIXI.Graphics();
     }
+
+    destroy(worldContainer) {
+        if (this.graphics && worldContainer) {
+            worldContainer.removeChild(this.graphics);
+            this.graphics.destroy();
+        }
+    }
 }
 
 class DefaultCannon extends Cannon {
@@ -110,6 +117,65 @@ class ExplosiveCannon extends Cannon {
             this.cooldown = this.fireRate;
             // Create bullet and pass worldContainer for its graphics
             return new this.bulletType(startX, startY, this.damage, this.bulletSpeed, this.bulletPierce, this.bulletSize, angle, this.worldContainer);
+        } else {
+            return null;
+        }
+    }
+}
+
+class EnemyCannon extends Cannon {
+    constructor(owner, worldContainer) { 
+        super(1, // damage
+              EnemyBullet, // bullet type
+              0.6, // bullet speed (slightly slower)
+              1, // bullet pierce
+              15, // bullet size
+              1000 // fire rate (milliseconds)
+            );
+        this.owner = owner; // Reference to the enemy using the cannon
+        this.cannonLength = 55; 
+        this.worldContainer = worldContainer;
+        this.cannonWidth = 30;
+        this.cannonHeight = 10;
+        
+        this.graphics = new PIXI.Graphics();
+        if (this.worldContainer) {
+            this.worldContainer.addChild(this.graphics);
+        } else {
+            console.error("EnemyCannon created without worldContainer!");
+        }
+        
+        this.renderGraphics();
+    }
+
+    renderGraphics() {
+        this.graphics.clear();
+        this.graphics.rect(-this.cannonLength / 2 + 5, -this.cannonWidth / 2, this.cannonLength, this.cannonWidth);
+        this.graphics.fill({color: 0x5CBDEA});
+    }
+
+    update(deltaTime) { 
+        if (this.cooldown > 0) {
+            this.cooldown -= deltaTime;
+        }
+    }
+
+    fire(angle, x, y) { 
+        if(this.cooldown <= 0 && this.owner && this.owner.position) {
+            shoot_sound.currentTime = 0;
+            shoot_sound.volume = 0.08; 
+            shoot_sound.play();
+
+
+            const spawnOffset = Math.max(this.owner.width, this.owner.height) / 2 + 5; 
+            const startX = x + spawnOffset;
+            const startY = y + spawnOffset;
+
+            this.cooldown = this.fireRate;
+
+            const bullet = new this.bulletType(startX, startY, this.damage, this.bulletSpeed, this.bulletPierce, this.bulletSize, angle, this.worldContainer);
+            enemy_bullets.push(bullet); 
+            return bullet; 
         } else {
             return null;
         }
