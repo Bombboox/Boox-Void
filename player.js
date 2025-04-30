@@ -135,6 +135,7 @@ class Player {
     }
 
     renderGraphics() {
+        this.graphics.clear(); // Clear previous frame
         if (this.alive && this.visible) {
             this.graphics.circle(0, 0, this.radius);
             this.graphics.fill(this.color);

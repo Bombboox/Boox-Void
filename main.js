@@ -52,7 +52,6 @@ fpsText.position.set(10, 10);
 const LEVEL_ONE_WAVES = new Waves(worldContainer, [
     new Wave(1, {
         "DefaultEnemy": 1,
-        "DefaultBoss": 1
     }),
 
     new Wave(1, {
@@ -60,7 +59,7 @@ const LEVEL_ONE_WAVES = new Waves(worldContainer, [
     }),
 
     new Wave(1, {
-        "DefaultEnemy": 5,
+        "DefaultEnemy": 4,
         "DefaultBoss": 1
     }, () => {
         stopAllMusic();
