@@ -1,5 +1,5 @@
 class Enemy {
-    constructor(x, y, width, height, hp, speed) {
+    constructor(x, y, width, height, hp, speed, damage = 30) {
         this.position = vector(x, y);
         this.target = vector(x, y);
         this.width = width;
@@ -14,6 +14,7 @@ class Enemy {
         this.name = "ERROR!";
         this.invincibilityFrames = 0;
         this.invincibilityDuration = 50;
+        this.dmg = damage;
 
         // PixiJS Graphics - Must be added to container by subclass or externally
         this.graphics = new PIXI.Graphics();
@@ -252,22 +253,20 @@ class DefaultBoss extends Enemy {
         
         // Handle camera focus on boss when spawned
         if (this.cameraFocusing) {
-            enemiesPaused = true;
             this.cameraFocusTimer -= deltaTime;
             
             // Lerp camera position towards boss
-            const lerpFactor = Math.max(0, this.cameraFocusTimer / this.cameraFocusTime);
+            const lerpFactor = deltaTime / 100;
             const targetX = app.screen.width / 2 - (this.position.x + this.width/2) * worldContainer.scale.x;
             const targetY = app.screen.height / 2 - (this.position.y + this.height/2) * worldContainer.scale.y;
             
-            worldContainer.x = lerp(targetX, worldContainer.x, lerpFactor);
-            worldContainer.y = lerp(targetY, worldContainer.y, lerpFactor);
+            worldContainer.x = lerp(worldContainer.x, targetX, lerpFactor);
+            worldContainer.y = lerp(worldContainer.y, targetY, lerpFactor);
             
             // When timer is done, return camera control to player
             if (this.cameraFocusTimer <= 0) {
-                enemiesPaused = false;
                 this.cameraFocusing = false;
-                player.cameraFollow = this.originalPlayerCameraFollow;
+                player.lerpCameraBack();
             }
         }
 

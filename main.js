@@ -52,6 +52,7 @@ fpsText.position.set(10, 10);
 const LEVEL_ONE_WAVES = new Waves(worldContainer, [
     new Wave(1, {
         "DefaultEnemy": 1,
+        "DefaultBoss": 1
     }),
 
     new Wave(1, {
@@ -126,22 +127,6 @@ const gameLoop = (ticker) => {
     // Update the minimap
     if (minimap && minimapEnabled) {
         minimap.update();
-    }
-
-    // Center the view on the player
-    let x = app.screen.width / 2 - player.position.x * worldContainer.scale.x;
-    let y = app.screen.height / 2 - player.position.y * worldContainer.scale.y;
-
-    // Calculate the correct clamping boundaries for the worldContainer position
-    const minContainerX = app.screen.width - worldRightBoundary * worldContainer.scale.x;
-    const maxContainerX = -worldLeftBoundary * worldContainer.scale.x;
-    const minContainerY = app.screen.height - worldBottomBoundary * worldContainer.scale.y;
-    const maxContainerY = -worldTopBoundary * worldContainer.scale.y;
-
-    // Apply clamping to keep the view within world boundaries, using correct min/max order
-    if(player.cameraFollow) {
-        worldContainer.x = clamp(x, minContainerX, maxContainerX);
-        worldContainer.y = clamp(y, minContainerY, maxContainerY);
     }
 
     drawHealthBar(worldContainer, deltaTime);

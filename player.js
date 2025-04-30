@@ -1,5 +1,5 @@
 class Player {
-    constructor(x, y, radius, color) {
+    constructor(x, y, radius, color, hp = 100) {
         this.position = vector(x, y);
         this.radius = radius;
         this.color = color;
@@ -7,10 +7,21 @@ class Player {
         this.cannons = [];
         this.cannonOffset = 10;
         this.angle = 0;
+        this.maxHp = hp;
+        this.hp = hp;
         this.armor = null;
         this.baseSpeed = 200; // Speed in pixels per second
         this.alive = true; // Track if player is alive
         this.cameraFollow = true;
+        this.cameraLerping = false;
+        
+        // Invincibility frames
+        this.invincible = false;
+        this.invincibilityDuration = 1000; // 1 second of invincibility
+        this.invincibilityTimer = 0;
+        this.flashInterval = 100; // Flash every 100ms when invincible
+        this.flashTimer = 0;
+        this.visible = true;
 
         // PixiJS Graphics
         this.graphics = new PIXI.Graphics();
@@ -52,6 +63,45 @@ class Player {
             return;
         }
 
+        // Update invincibility
+        if (this.invincible) {
+            this.invincibilityTimer -= deltaTime;
+            this.flashTimer -= deltaTime;
+            
+            // Handle flashing effect
+            if (this.flashTimer <= 0) {
+                this.visible = !this.visible;
+                this.flashTimer = this.flashInterval;
+            }
+            
+            // End invincibility when timer expires
+            if (this.invincibilityTimer <= 0) {
+                this.invincible = false;
+                this.visible = true;
+            }
+        }
+
+        let cameraTarget = this.getCameraClamped();
+
+        if(this.cameraLerping) {
+            const lerpFactor = deltaTime / 100;
+            worldContainer.x = lerp(worldContainer.x, cameraTarget.x, lerpFactor);
+            worldContainer.y = lerp(worldContainer.y, cameraTarget.y, lerpFactor);
+            
+            // Check if camera is close enough to player to stop lerping
+            const distanceX = Math.abs(worldContainer.x - cameraTarget.x);
+            const distanceY = Math.abs(worldContainer.y - cameraTarget.y);
+            if (distanceX < 5 && distanceY < 5) {
+                this.cameraLerping = false;
+                this.cameraFollow = true;
+            }
+        }
+
+        if(this.cameraFollow) {
+            worldContainer.x = cameraTarget.x;
+            worldContainer.y = cameraTarget.y;
+        }
+
         const worldMouseX = (mouseX - worldContainer.x);
         const worldMouseY = (mouseY - worldContainer.y);
         
@@ -85,8 +135,7 @@ class Player {
     }
 
     renderGraphics() {
-        this.graphics.clear();
-        if (this.alive) {
+        if (this.alive && this.visible) {
             this.graphics.circle(0, 0, this.radius);
             this.graphics.fill(this.color);
         }
@@ -103,16 +152,36 @@ class Player {
     }
 
     revive() {
+        this.hp = this.maxHp;
         this.alive = true;
         this.deathText.visible = false;
+        this.invincible = true;
+        this.invincibilityTimer = this.invincibilityDuration;
+        this.visible = true;
 
         for(let cannon of this.cannons) {
             cannon.graphics.visible = true;
         }
     }
+
+    lerpCameraBack() {
+        this.cameraLerping = true;
+    }
+
+    getCameraClamped() {
+        let x = app.screen.width / 2 - player.position.x * worldContainer.scale.x;
+        let y = app.screen.height / 2 - player.position.y * worldContainer.scale.y;
+
+        const minContainerX = app.screen.width - worldRightBoundary * worldContainer.scale.x;
+        const maxContainerX = -worldLeftBoundary * worldContainer.scale.x;
+        const minContainerY = app.screen.height - worldBottomBoundary * worldContainer.scale.y;
+        const maxContainerY = -worldTopBoundary * worldContainer.scale.y;
+
+        return vector(clamp(x, minContainerX, maxContainerX), clamp(y, minContainerY, maxContainerY));
+    }
     
     checkEnemyCollision() {
-        if (!this.alive) return;
+        if (!this.alive || this.invincible) return;
         
         const playerCollider = { 
             position: vector(this.position.x, this.position.y), 
@@ -127,9 +196,23 @@ class Player {
             };
             
             if (checkCollision(playerCollider, enemyCollider)) {
-                this.die();
+                this.takeDamage(enemy.dmg);
                 return;
             }
+        }
+    }
+
+    takeDamage(damage) {
+        if (this.invincible) return;
+        
+        this.hp -= damage;
+        if(this.hp <= 0) {
+            this.die();
+        } else {
+            // Activate invincibility frames
+            this.invincible = true;
+            this.invincibilityTimer = this.invincibilityDuration;
+            this.flashTimer = this.flashInterval;
         }
     }
 

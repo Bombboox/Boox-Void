@@ -125,7 +125,7 @@ class ExplosiveCannon extends Cannon {
 
 class EnemyCannon extends Cannon {
     constructor(owner, worldContainer) { 
-        super(1, // damage
+        super(15, // damage
               EnemyBullet, // bullet type
               0.6, // bullet speed (slightly slower)
               1, // bullet pierce

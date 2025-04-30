@@ -206,7 +206,7 @@ class EnemyBullet extends Bullet {
 
         if(checkCollision(this, player)) {
             this.destroy();
-            player.die();
+            player.takeDamage(this.damage);
         }
         return false; 
     }
