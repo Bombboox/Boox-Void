@@ -141,21 +141,9 @@ class Waves {
             return;
         }
         
-        // Count remaining enemies (non-spawners)
-        const regularEnemies = enemies.filter(enemy => !(enemy instanceof EnemySpawner) && Object.getPrototypeOf(enemy.constructor).name !== 'EnemySpawner');
-        
-        // Count remaining spawns
-        let remainingSpawns = 0;
-        const enemySpawners = enemies.filter(enemy => enemy instanceof EnemySpawner || Object.getPrototypeOf(enemy.constructor).name === 'EnemySpawner');
-        for (let spawner of enemySpawners) {
-            remainingSpawns += spawner.spawns_remaining;
-        }
-        
-        // Calculate total remaining enemies
-        this.remainingEnemies = regularEnemies.length + remainingSpawns;
-        
         // Update text
-        this.enemiesRemainingText.text = `enemies: ${this.remainingEnemies}/${this.totalEnemiesInWave}`;
+        let wave = this.waves[this.current_wave];
+        this.enemiesRemainingText.text = `enemies: ${wave.getRemainingEnemies()}/${wave.getTotalEnemies()}`;
         
         // Position at bottom left of the screen
         this.enemiesRemainingText.position.set(
@@ -252,6 +240,7 @@ class Waves {
                 if(this.current_wave >= this.waveCount) {
                     this.completed = true;
                     this.showPraiseText();
+                    window.parent.postMessage("level_completed", '*');
                     return;
                 }
                 this.in_between_waves = false;
@@ -303,6 +292,7 @@ class Wave {
         this.power_scale = power_scale;
         this.enemyTypes = enemyTypes || {};
         this.special_instructions = special_instructions;
+        this.total_enemies = this.getTotalEnemies();
     }
 
     spawn_wave(enemies) {
@@ -338,11 +328,46 @@ class Wave {
     }
     
     getTotalEnemies() {
-        if (Object.keys(this.enemyTypes).length === 0) {
-            return 1;
+        var total = 0;
+
+        const enemySpawners = enemies.filter(enemy => 
+            enemy instanceof EnemySpawner || 
+            Object.getPrototypeOf(enemy.constructor).name === 'EnemySpawner'
+        );
+
+        if(enemySpawners.length == 0) return 0;
+
+        for(let spawner of enemySpawners) {
+            const spawnerType = spawner.constructor.name;
+            let enemyType = null;
+            if (spawnerType.endsWith('Spawner')) {
+                enemyType = spawnerType.replace('Spawner', '');
+            }
+            
+            if (enemyType && this.enemyTypes[enemyType]) {
+                total += this.enemyTypes[enemyType];
+            } else {
+                total += spawner.spawns_remaining;
+            }
+        }
+
+        return total;
+    }
+
+    getRemainingEnemies() {
+        let total = 0;
+        
+        // Count remaining enemies in spawners
+        let enemy_spawners = enemies.filter(enemy => enemy instanceof EnemySpawner || Object.getPrototypeOf(enemy.constructor).name === 'EnemySpawner');
+        for(let spawner of enemy_spawners) {
+            total += spawner.spawns_remaining;
         }
         
-        return Object.values(this.enemyTypes).reduce((total, count) => total + count, 0);
+        // Count regular enemies that are already spawned
+        let regular_enemies = enemies.filter(enemy => !(enemy instanceof EnemySpawner) && Object.getPrototypeOf(enemy.constructor).name !== 'EnemySpawner');
+        total += regular_enemies.length;
+        
+        return total;
     }
 
     completed() {

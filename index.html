@@ -212,7 +212,16 @@
                 case 'Escape':
                     pauseGame();
                     break;
+
+                case 'level_completed':
+                    setTimeout(() => {
+                        alert("THANKS FOR PLAYING BOOX-VOID DEMO 😘");
+                        closeGame();
+                    }, 1000);
+                    break;
             }
+
+
         });
 
         document.addEventListener('contextmenu', function(e) {
