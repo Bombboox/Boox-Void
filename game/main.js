@@ -1,5 +1,6 @@
 const app = new PIXI.Application();
-let appInitialized = false;
+var appInitialized = false;
+var paused = false;
 
 async function initializeApp() {
     await app.init({
@@ -105,34 +106,38 @@ const main = () => {
 }
 
 const gameLoop = (ticker) => {
-    deltaTime = ticker.deltaMS;
+    if(!paused) {
+        deltaTime = ticker.deltaMS;
 
-    // Update game logic
-    player.update(mouseX, mouseY, mouseDown, deltaTime);
-
-    for (let i = bullets.length - 1; i >= 0; i--) { 
-        bullets[i].update(deltaTime, worldContainer);
+        // Update game logic
+        player.update(mouseX, mouseY, mouseDown, deltaTime);
+    
+        for (let i = bullets.length - 1; i >= 0; i--) { 
+            bullets[i].update(deltaTime, worldContainer);
+        }
+    
+        // Update enemy bullets
+        for (let i = enemy_bullets.length - 1; i >= 0; i--) { 
+            enemy_bullets[i].update(deltaTime, worldContainer);
+        }
+    
+        for (let i = enemies.length - 1; i >= 0; i--) { 
+            enemies[i].update(deltaTime, worldContainer); 
+        }
+    
+        // Update the minimap
+        if (minimap && minimapEnabled) {
+            minimap.update();
+        }
+    
+        drawHealthBar(worldContainer, deltaTime);
+        LEVEL_ONE_WAVES.update(deltaTime, enemies);
+    
+        fpsText.text = `FPS: ${Math.round(app.ticker.FPS)}`;
     }
 
-    // Update enemy bullets
-    for (let i = enemy_bullets.length - 1; i >= 0; i--) { 
-        enemy_bullets[i].update(deltaTime, worldContainer);
-    }
-
-    for (let i = enemies.length - 1; i >= 0; i--) { 
-        enemies[i].update(deltaTime, worldContainer); 
-    }
-
-    // Update the minimap
-    if (minimap && minimapEnabled) {
-        minimap.update();
-    }
-
-    drawHealthBar(worldContainer, deltaTime);
-    LEVEL_ONE_WAVES.update(deltaTime, enemies);
-
-    fpsText.text = `FPS: ${Math.round(app.ticker.FPS)}`;
 }
+
 window.addEventListener("mousemove", (event) => {
     mouseX = event.clientX;
     mouseY = event.clientY;
@@ -157,6 +162,10 @@ window.addEventListener("keydown", (event) => {
                 configureLevel("levels/level_1.json", player, worldContainer);
                 LEVEL_ONE_WAVES.reset();
             }
+
+        default:
+            window.parent.postMessage(event.key, '*');
+            break;
     }
 });
 

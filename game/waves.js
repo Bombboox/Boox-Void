@@ -43,39 +43,48 @@ class Waves {
     
     createTextElements() {
         // Create wave number text
-        this.waveText = new PIXI.Text('', {
-            fontFamily: 'Arial',
-            fontSize: 48,
-            fontWeight: 'bold',
-            fill: 0xff0000,
-            align: 'center',
-            stroke: 0x000000,
-            strokeThickness: 4
+        this.waveText = new PIXI.Text({
+            text: '',
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 48,
+                fontWeight: 'bold',
+                fill: 0xff0000,
+                align: 'center',
+                stroke: 0x000000,
+                strokeThickness: 4
+            }
         });
         this.waveText.anchor.set(0.5, 0.5);
         this.waveText.zIndex = 1000;
         this.waveText.visible = false;
         
         // Create praise text
-        this.praiseText = new PIXI.Text('', {
-            fontFamily: 'Arial',
-            fontSize: 36,
-            fontWeight: 'bold',
-            fill: 0xff0000,
-            align: 'center',
-            stroke: 0x000000,
-            strokeThickness: 3
+        this.praiseText = new PIXI.Text({
+            text: '',
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 36,
+                fontWeight: 'bold',
+                fill: 0xff0000,
+                align: 'center',
+                stroke: 0x000000,
+                strokeThickness: 3
+            }
         });
         this.praiseText.anchor.set(0.5, 0.5);
         this.praiseText.zIndex = 1000;
         this.praiseText.visible = false;
         
         // Create enemies remaining text
-        this.enemiesRemainingText = new PIXI.Text('', {
-            fontFamily: 'Arial',
-            fontSize: 18,
-            fill: 0xffffff,
-            align: 'center',
+        this.enemiesRemainingText = new PIXI.Text({
+            text: '',
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 18,
+                fill: 0xffffff,
+                align: 'center',
+            }
         });
         this.enemiesRemainingText.anchor.set(0, 0);
         this.enemiesRemainingText.zIndex = 1000;
