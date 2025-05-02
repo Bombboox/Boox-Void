@@ -11,13 +11,15 @@ function createHealthBar(worldContainer) {
     worldContainer.addChild(healthBar);
     
     // Create text for enemy name
-    enemyNameText = new PIXI.Text('', {
-        fontFamily: 'Arial',
-        fontSize: 16,
-        fill: 0xffffff,
-        align: 'center',
-        stroke: 0x000000,
-        strokeThickness: 2,
+    enemyNameText = new PIXI.Text({
+        text: '',
+        style: {
+            fontFamily: 'Arial',
+            fontSize: 16,
+            fill: 0xffffff,
+            align: 'center',
+            stroke: {width: 2, color: 0x000000}
+        }
     });
     enemyNameText.zIndex = 1000;
     enemyNameText.anchor.set(0.5, 0.5);

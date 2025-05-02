@@ -50,6 +50,8 @@ var worldRightBoundary = 1000;
 
 var enemiesPaused = false;
 
+let musicStarted = false;
+
 // FPS Counter Text
 const fpsText = new PIXI.Text({text: "FPS: 0", style: {fontFamily: 'Arial', fontSize: 16, fill: 0xffffff }});
 fpsText.position.set(10, 10);
@@ -97,8 +99,6 @@ const main = () => {
 
     app.ticker.add(gameLoop);
     
-    tryPlayMusic();
-
     if (mobileCheck()) {
         isMobile = true;
         setupMobileControls();
@@ -163,20 +163,10 @@ window.addEventListener("keydown", (event) => {
                 destroyAllEnemies();
                 stopAllMusic();
 
-                // Try to play music, and retry every second if it fails
-                const tryPlayMusic = () => {
-                    const musicInstance = playMusic('music_main', true, 0.25);
-                    if (!musicInstance) {
-                        console.log("Failed to play music, retrying in 1 second...");
-                        setTimeout(tryPlayMusic, 1000);
-                    }
-                };
-                
-                tryPlayMusic();
                 configureLevel("levels/level_1.json", player, worldContainer);
                 LEVEL_ONE_WAVES.reset();
             }
-
+            break;
         default:
             window.parent.postMessage(event.key, '*');
             break;
@@ -211,11 +201,12 @@ window.mobileCheck = function() {
 };
 
 const tryPlayMusic = () => {
+    if (musicStarted) return;
     const musicInstance = playMusic('music_main', true, 0.2);
-    console.log(musicInstance);
-    if (musicInstance.playState == 'playFailed') {
-        console.log("Failed to play music, retrying in 1 second...");
-        setTimeout(tryPlayMusic, 1000);
+    if (musicInstance && musicInstance.playState !== 'playFailed') {
+        musicStarted = true;;
+    } else {
+        console.log("Failed to play music initially (likely needs interaction). Will retry on interaction.");
     }
 };
 
@@ -223,8 +214,8 @@ function setupMobileControls() {
     const joystickContainerLeft = document.createElement('div');
     joystickContainerLeft.id = 'joystick-container-left';
     joystickContainerLeft.style.position = 'absolute';
-    joystickContainerLeft.style.bottom = '20px';
-    joystickContainerLeft.style.left = '20px';
+    joystickContainerLeft.style.bottom = '150px';
+    joystickContainerLeft.style.left = '150px';
     joystickContainerLeft.style.width = '150px';
     joystickContainerLeft.style.height = '150px';
     document.body.appendChild(joystickContainerLeft);
@@ -257,6 +248,17 @@ function setupMobileControls() {
     moveJoystick = nipplejs.create(joystickOptionsLeft);
     aimJoystick = nipplejs.create(joystickOptionsRight);
 
+    const startMusicOnInteraction = () => {
+        if (!musicStarted) {
+            tryPlayMusic();
+        }
+        moveJoystick.off('start', startMusicOnInteraction);
+        aimJoystick.off('start', startMusicOnInteraction);
+    };
+
+    moveJoystick.on('start', startMusicOnInteraction);
+    aimJoystick.on('start', startMusicOnInteraction);
+
     moveJoystick.on('move', (evt, data) => {
         const speed = 5;
         const angle = data.angle.radian;
@@ -282,15 +284,6 @@ function setupMobileControls() {
         keyboard['d'] = false;
     });
 
-    moveJoystick.on('end', () => {
-        if (player && player.body) {
-            keyboard['w'] = false;
-            keyboard['s'] = false;
-            keyboard['a'] = false;
-            keyboard['d'] = false;
-        }
-    });
-
     aimJoystick.on('move', (evt, data) => {
         const playerScreenPos = worldContainer.toGlobal(player.graphics.position);
         const angle = data.angle.radian;
@@ -305,6 +298,8 @@ function setupMobileControls() {
     aimJoystick.on('end', () => {
         mouseDown = false;
     });
+
+    repositionJoysticks();
 }
 
 function updateMobileInput() {

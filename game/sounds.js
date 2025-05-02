@@ -14,7 +14,7 @@ function loadSound() {
 }
 
 function handleLoadComplete(event) {
-    console.log("Sound loaded:", event.id, event.src);
+
 }
 
 // Function to play a short sound effect

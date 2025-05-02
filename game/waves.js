@@ -51,8 +51,7 @@ class Waves {
                 fontWeight: 'bold',
                 fill: 0xff0000,
                 align: 'center',
-                stroke: 0x000000,
-                strokeThickness: 4
+                stroke: {width: 4, color: 0x000000}
             }
         });
         this.waveText.anchor.set(0.5, 0.5);
@@ -68,8 +67,7 @@ class Waves {
                 fontWeight: 'bold',
                 fill: 0xff0000,
                 align: 'center',
-                stroke: 0x000000,
-                strokeThickness: 3
+                stroke: {width: 3, color: 0x000000}
             }
         });
         this.praiseText.anchor.set(0.5, 0.5);

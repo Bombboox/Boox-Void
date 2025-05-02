@@ -22,9 +22,8 @@ class Minimap {
 
         // Create a mask once during initialization
         this.mask = new PIXI.Graphics();
-        this.mask.beginFill(0xffffff);
-        this.mask.drawRect(0, 0, this.size, this.size);
-        this.mask.endFill();
+        this.mask.rect(0, 0, this.size, this.size);
+        this.mask.fill({color: 0xffffff});
         this.container.addChild(this.mask);
         this.graphics.mask = this.mask;
 
@@ -59,18 +58,17 @@ class Minimap {
         return { x: mapX, y: mapY };
     }
 
-    update() {
+    update() {  
         this.graphics.clear();
 
         // Draw background and border
-        this.graphics.beginFill(this.bgColor, this.bgAlpha);
-        this.graphics.lineStyle(this.borderWidth, this.borderColor, 1);
-        this.graphics.drawRect(0, 0, this.size, this.size);
-        this.graphics.endFill();
+        this.graphics.fill({color: this.bgColor, alpha: this.bgAlpha});
+        this.graphics.rect(0, 0, this.size, this.size);
+        this.graphics.stroke({color: this.borderColor, width: this.borderWidth});
 
         // Draw level geometry
         if (this.levelData && this.levelData.shapes) {
-            this.graphics.lineStyle(0); // No border for level shapes generally
+            this.graphics.setStrokeStyle({width: 0});
 
             this.levelData.shapes.forEach(shape => {
                 // Skip points or shapes without geometry
@@ -116,25 +114,21 @@ class Minimap {
                     }
                     // Ignore fully transparent shapes on minimap
                     if(fillAlpha <= 0) return;
-
-                    this.graphics.beginFill(fillColor, fillAlpha * 0.8); // Use slightly reduced alpha on minimap
-
                     if (shape.type === 'Rectangle') {
                         const mapWidth = shape.width * scale;
                         const mapHeight = shape.height * scale;
-                        this.graphics.drawRect(mapPos.x, mapPos.y, mapWidth, mapHeight);
+                        this.graphics.rect(mapPos.x, mapPos.y, mapWidth, mapHeight);
                     } else { // Circle
                         const mapRadius = shape.radius * scale;
-                        this.graphics.drawCircle(mapPos.x, mapPos.y, mapRadius);
+                        this.graphics.circle(mapPos.x, mapPos.y, mapRadius);
                     }
-                    this.graphics.endFill();
+                    this.graphics.fill({color: fillColor, alpha: fillAlpha * 0.8});
                 }
             });
         }
 
         // Draw enemies
-        this.graphics.beginFill(this.enemyColor);
-        this.graphics.lineStyle(0); // No border for dots
+        this.graphics.setStrokeStyle({width: 0}); // No border for dots
         for (let i = 0; i < this.enemies.length; i++) {
             const enemy = this.enemies[i];
             // Check if enemy is within view radius before converting
@@ -145,20 +139,19 @@ class Minimap {
             const dy = enemy.position.y - this.player.position.y;
             if (Math.sqrt(dx*dx + dy*dy) <= this.viewRadius) {
                 const mapPos = this.worldToMinimap(enemy.position.x, enemy.position.y);
-                this.graphics.drawCircle(mapPos.x, mapPos.y, 2); // Draw enemy as a small circle
+                this.graphics.circle(mapPos.x, mapPos.y, 2); // Draw enemy as a small circle
             }
         }
-        this.graphics.endFill();
+        this.graphics.fill({color: this.enemyColor});
 
         // Draw player (always in the center)
-        this.graphics.beginFill(this.playerColor);
-        this.graphics.lineStyle(0);
-        this.graphics.drawCircle(this.size / 2, this.size / 2, 3); // Player slightly larger
-        this.graphics.endFill();
+        this.graphics.setStrokeStyle({width: 0});
+        this.graphics.circle(this.size / 2, this.size / 2, 3); // Player slightly larger
+        this.graphics.fill({color: this.playerColor});
         
         // Draw white outline around the minimap (on top of everything)
-        this.graphics.lineStyle(1, 0xffffff, 1);
-        this.graphics.drawRect(0, 0, this.size, this.size);
+        this.graphics.stroke({color: 0xffffff, width: 1});
+        this.graphics.rect(0, 0, this.size, this.size);
     }
 
     destroy() {
