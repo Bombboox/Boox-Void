@@ -209,14 +209,13 @@
     </style>
 </head>
 <body>
+    <div class="pause-container" id="pause-container">
+        <h1>Paused</h1>
+        <button class="menu-button" onclick="closeGame()">Return</button>
+    </div>
+
     <div id="big_container">
         <div class="page" id="menu">
-            <div class="pause-container" id="pause-container">
-                <h1>Paused</h1>
-                <button class="menu-button" onclick="closeGame()">Return</button>
-        
-            </div>
-        
             <div class="container">
                 <canvas id="menu-canvas"></canvas>
                 <div class="title-container">
@@ -350,7 +349,7 @@
             if(contentFrame.contentWindow.paused) {
                 contentFrame.contentWindow.paused = false;
                 pauseContainer.style.display = 'none';
-            } else {
+            } else if(contentFrame.contentWindow.paused == false) {
                 contentFrame.contentWindow.paused = true;
                 pauseContainer.style.display = 'grid';
             }
