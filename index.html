@@ -209,47 +209,49 @@
     </style>
 </head>
 <body>
-    <div class="page" id="menu">
-        <div class="pause-container" id="pause-container">
-            <h1>Paused</h1>
-            <button class="menu-button" onclick="closeGame()">Return</button>
-    
-        </div>
-    
-        <div class="container">
-            <canvas id="menu-canvas"></canvas>
-            <div class="title-container">
-                <h1 id="title">Boox Void</h1>
+    <div id="big_container">
+        <div class="page" id="menu">
+            <div class="pause-container" id="pause-container">
+                <h1>Paused</h1>
+                <button class="menu-button" onclick="closeGame()">Return</button>
+        
             </div>
-    
-            <div class="button-container">
-                <button class="menu-button" onclick="openGame()">Play</button>
-                <button class="menu-button">Shop</button>
-                <button class="menu-button">Cannon</button>
+        
+            <div class="container">
+                <canvas id="menu-canvas"></canvas>
+                <div class="title-container">
+                    <h1 id="title">Boox Void</h1>
+                </div>
+        
+                <div class="button-container">
+                    <button class="menu-button" onclick="openGame()">Play</button>
+                    <button class="menu-button">Shop</button>
+                    <button class="menu-button">Cannon</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="page" id="shop">
-        <div class="container">
-            <div class="weapons_container">
+        <div class="page" id="shop">
+            <div class="container">
+                <div class="weapons_container">
 
-                <div class="weapon" id="default_weapon">
-                    <h1 class="weapon_name">Default</h1>
-                    <button class="menu-button buy_button">Buy</button>
+                    <div class="weapon" id="default_weapon">
+                        <h1 class="weapon_name">Default</h1>
+                        <button class="menu-button buy_button">Buy</button>
+                    </div>
+
+                    <div class="weapon" id="cannon_weapon">
+                        <h1 class="weapon_name">Cannon</h1>
+                        <button class="menu-button buy_button">Buy</button>
+                    </div>
+
+                    <div class="weapon" id="cannon_weapon"></div>
+                    <div class="weapon" id="cannon_weapon"></div>
+                    <div class="weapon" id="cannon_weapon"></div>
+                    <div class="weapon" id="cannon_weapon"></div>
+                    <div class="weapon" id="cannon_weapon"></div>
+                    <div class="weapon" id="cannon_weapon"></div>
                 </div>
-
-                <div class="weapon" id="cannon_weapon">
-                    <h1 class="weapon_name">Cannon</h1>
-                    <button class="menu-button buy_button">Buy</button>
-                </div>
-
-                <div class="weapon" id="cannon_weapon"></div>
-                <div class="weapon" id="cannon_weapon"></div>
-                <div class="weapon" id="cannon_weapon"></div>
-                <div class="weapon" id="cannon_weapon"></div>
-                <div class="weapon" id="cannon_weapon"></div>
-                <div class="weapon" id="cannon_weapon"></div>
             </div>
         </div>
     </div>
@@ -259,7 +261,7 @@
         const canvas = document.getElementById('menu-canvas');
         const ctx = canvas.getContext('2d');
         const contentFrame = document.getElementById('contentFrame');
-        const container = document.getElementById('container');
+        const container = document.getElementById('big_container');
         const pauseContainer = document.getElementById('pause-container');
         
         // Set canvas dimensions to match window size
@@ -275,7 +277,7 @@
         var angle = 0;
 
         function main() {
-            openPage('shop');
+            openPage('menu');
             draw();
         }
         
