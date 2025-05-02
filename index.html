@@ -23,7 +23,7 @@
                 "wdth" 100;
         }
 
-        #container {
+        .container {
             width: 100%;
             height: 100%;
             background-color: #000000;
@@ -40,19 +40,26 @@
             background-color: rgb(175, 157, 157);
             color: #ffffff;
             font-family: "Press Start 2P", system-ui;
-            font-size: 20px;
+            font-size: 16px;
             border: none;
             border-radius: 5px;
             padding: 10px;
             cursor: pointer;
             box-shadow: 0 0.8em rgb(102, 97, 97);
             font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .menu-button:active {
             box-shadow: none;
             position: relative;
-            top: .8em;
+    
         }
 
         .button-container {
@@ -126,6 +133,73 @@
             font-family: "Press Start 2P", system-ui;
             color: white;
         }
+
+        .page {
+            display: none;
+        }
+
+        .weapons_container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 40%;
+            height: 70%;
+            background-color: rgb(204, 160, 77);
+            box-shadow: 0 0 0px 8px rgb(80, 61, 26);
+            border-radius: 8px;
+            z-index: 3;
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+        
+        .weapons_container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+
+        .weapon {
+            position: relative;
+            width: 100%;
+            min-height: 30%;
+            flex-shrink: 0;
+            background-color: rgb(204, 160, 77);
+            box-shadow: 0 0 0px 8px rgb(150, 115, 49);
+            z-index: 3;
+        }
+
+        .weapon_name {
+            position: relative;
+            top: 3%;
+            left: 1.5%;
+            font-family: "Press Start 2P", system-ui;
+            font-size: clamp(12px, 2vh, 20px);
+            color: rgb(58, 41, 10);
+            margin: 0;
+            padding: 10px;
+        }
+
+        .buy_button {
+            position: absolute;
+            right: 10px;
+            bottom: 30px;
+            width: 20%;
+            height: 5%;
+            background-color: #7194D6;
+            box-shadow: 0 0.8em #2f4d85;
+            color: #000000; 
+        }
+
+        .buy_button:active {
+            position: absolute;
+            box-shadow: none;
+            transform: translate(0px, 10px);
+        }
         
         @keyframes pulse {
             0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -135,24 +209,51 @@
     </style>
 </head>
 <body>
-    <div class="pause-container" id="pause-container">
-        <h1>Paused</h1>
-        <button class="menu-button" onclick="closeGame()">Return</button>
-
+    <div class="page" id="menu">
+        <div class="pause-container" id="pause-container">
+            <h1>Paused</h1>
+            <button class="menu-button" onclick="closeGame()">Return</button>
+    
+        </div>
+    
+        <div class="container">
+            <canvas id="menu-canvas"></canvas>
+            <div class="title-container">
+                <h1 id="title">Boox Void</h1>
+            </div>
+    
+            <div class="button-container">
+                <button class="menu-button" onclick="openGame()">Play</button>
+                <button class="menu-button">Shop</button>
+                <button class="menu-button">Cannon</button>
+            </div>
+        </div>
     </div>
 
-    <div id="container">
-        <canvas id="menu-canvas"></canvas>
-        <div class="title-container">
-            <h1 id="title">Boox Void</h1>
-        </div>
+    <div class="page" id="shop">
+        <div class="container">
+            <div class="weapons_container">
 
-        <div class="button-container">
-            <button class="menu-button" onclick="openGame()">Play</button>
-            <button class="menu-button">Shop</button>
-            <button class="menu-button">Cannon</button>
+                <div class="weapon" id="default_weapon">
+                    <h1 class="weapon_name">Default</h1>
+                    <button class="menu-button buy_button">Buy</button>
+                </div>
+
+                <div class="weapon" id="cannon_weapon">
+                    <h1 class="weapon_name">Cannon</h1>
+                    <button class="menu-button buy_button">Buy</button>
+                </div>
+
+                <div class="weapon" id="cannon_weapon"></div>
+                <div class="weapon" id="cannon_weapon"></div>
+                <div class="weapon" id="cannon_weapon"></div>
+                <div class="weapon" id="cannon_weapon"></div>
+                <div class="weapon" id="cannon_weapon"></div>
+                <div class="weapon" id="cannon_weapon"></div>
+            </div>
         </div>
     </div>
+
     <script src="external/pixi.js"></script> 
     <script>
         const canvas = document.getElementById('menu-canvas');
@@ -164,12 +265,6 @@
         // Set canvas dimensions to match window size
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
-        // Update canvas size when window is resized
-        window.addEventListener('resize', function() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
 
         const bullets = [];
 
@@ -178,6 +273,96 @@
         var centerX = canvas.width/2;
         var centerY = canvas.height/2.5;
         var angle = 0;
+
+        function main() {
+            openPage('shop');
+            draw();
+        }
+        
+        function draw() {
+            requestAnimationFrame(draw);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(angle);
+            
+            const rectWidth = 30;
+            const rectHeight = 15;
+            ctx.fillRect(30, -rectHeight/2, rectWidth, rectHeight);
+            
+            ctx.restore();
+
+            for (const [index, bullet] of bullets.entries()) {
+                bullet.x += Math.cos(bullet.angle) * bullet.speed;
+                bullet.y += Math.sin(bullet.angle) * bullet.speed;
+
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                if(bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+                    bullets.splice(index, 1);
+                }
+            }
+        }
+
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(canvas.width/2, canvas.height/2, 50, 0, Math.PI * 2);
+
+        function fire() {
+            let len = 50;
+            let x = centerX + Math.cos(angle) * len;
+            let y = centerY + Math.sin(angle) * len;
+
+            bullets.push({
+                x: x,
+                y: y,
+                angle: angle,
+                speed: 10,
+                radius: 7.5,
+                color: 'white',
+            });
+        }
+
+        function openGame() {
+            contentFrame.src = "game.html";
+            container.style.display = 'none';
+            pauseContainer.style.display = 'none';
+        }
+
+        function closeGame() {
+            contentFrame.src = '';
+            container.style.display = 'block';
+            pauseContainer.style.display = 'none';
+        }
+
+        function pauseGame() {
+            if(contentFrame.contentWindow.paused) {
+                contentFrame.contentWindow.paused = false;
+                pauseContainer.style.display = 'none';
+            } else {
+                contentFrame.contentWindow.paused = true;
+                pauseContainer.style.display = 'grid';
+            }
+        }
+
+        function openPage(page) {
+            document.getElementById(page).style.display = 'block';
+            let pages = document.getElementsByClassName('page');
+            for(let i = 0; i < pages.length; i++) {
+                if(pages[i].id !== page) {
+                    pages[i].style.display = 'none';
+                }
+            }
+        }
 
         window.addEventListener('mousemove', function(event) {
             mouseX = event.clientX;
@@ -229,82 +414,13 @@
             e.preventDefault();
         });
 
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.arc(canvas.width/2, canvas.height/2, 50, 0, Math.PI * 2);
-
-        function fire() {
-            let len = 50;
-            let x = centerX + Math.cos(angle) * len;
-            let y = centerY + Math.sin(angle) * len;
-
-            bullets.push({
-                x: x,
-                y: y,
-                angle: angle,
-                speed: 10,
-                radius: 7.5,
-                color: 'white',
-            });
-        }
-
-        function draw() {
-            requestAnimationFrame(draw);
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(angle);
-            
-            const rectWidth = 30;
-            const rectHeight = 15;
-            ctx.fillRect(30, -rectHeight/2, rectWidth, rectHeight);
-            
-            ctx.restore();
-
-            for (const [index, bullet] of bullets.entries()) {
-                bullet.x += Math.cos(bullet.angle) * bullet.speed;
-                bullet.y += Math.sin(bullet.angle) * bullet.speed;
-
-                ctx.beginPath();
-                ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                if(bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
-                    bullets.splice(index, 1);
-                }
-            }
-        }
-
-        function openGame() {
-            contentFrame.src = "game.html";
-            container.style.display = 'none';
-            pauseContainer.style.display = 'none';
-        }
-
-        function closeGame() {
-            contentFrame.src = '';
-            container.style.display = 'block';
-            pauseContainer.style.display = 'none';
-        }
-
-        function pauseGame() {
-            if(contentFrame.contentWindow.paused) {
-                contentFrame.contentWindow.paused = false;
-                pauseContainer.style.display = 'none';
-            } else {
-                contentFrame.contentWindow.paused = true;
-                pauseContainer.style.display = 'grid';
-            }
-        }
+        // Update canvas size when window is resized
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
         
-        draw();
+        main();
     </script>
 </body>
 </html>

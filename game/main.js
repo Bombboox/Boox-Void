@@ -104,6 +104,8 @@ const main = () => {
         setupMobileControls();
         repositionJoysticks();
     }
+
+    tryPlayMusic();
 }
 
 const gameLoop = (ticker) => {
@@ -201,13 +203,18 @@ window.mobileCheck = function() {
 };
 
 const tryPlayMusic = () => {
-    if (musicStarted) return;
-    const musicInstance = playMusic('music_main', true, 0.2);
-    if (musicInstance && musicInstance.playState !== 'playFailed') {
-        musicStarted = true;;
-    } else {
-        console.log("Failed to play music initially (likely needs interaction). Will retry on interaction.");
-    }
+    let x = setTimeout(() => {
+        if (musicStarted) {
+            clearTimeout(x);
+            return;
+        }
+        const musicInstance = playMusic('music_main', true, 0.2);
+        if (musicInstance && musicInstance.playState !== 'playFailed') {
+            musicStarted = true;;
+        } else {
+            console.log("Failed to play music initially (likely needs interaction). Will retry on interaction.");
+        }
+    }, 1000);
 };
 
 function setupMobileControls() {
