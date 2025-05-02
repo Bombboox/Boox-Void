@@ -54,9 +54,7 @@ class DefaultCannon extends Cannon {
 
     fire(angle, playerPosition) { 
         if(this.cooldown <= 0) {
-            shoot_sound.currentTime = 0;
-            shoot_sound.volume = 0.1;
-            shoot_sound.play();
+            playSound('shoot', 0.1);
 
             const spawnOffset = player.radius + this.cannonLength / 2 + 5; // Add a small buffer
             const startX = playerPosition.x + spawnOffset * Math.cos(angle);
@@ -106,9 +104,7 @@ class ExplosiveCannon extends Cannon {
 
     fire(angle, playerPosition) { 
         if(this.cooldown <= 0) {
-            shoot_sound.currentTime = 0;
-            shoot_sound.volume = 0.1;
-            shoot_sound.play();
+            playSound('shoot', 0.1);
 
             const spawnOffset = player.radius + this.cannonLength / 2 + 5; // Add a small buffer
             const startX = playerPosition.x + spawnOffset * Math.cos(angle);
@@ -162,10 +158,7 @@ class EnemyCannon extends Cannon {
 
     fire(angle, x, y) { 
         if(this.cooldown <= 0 && this.owner && this.owner.position) {
-            shoot_sound.currentTime = 0;
-            shoot_sound.volume = 0.08; 
-            shoot_sound.play();
-
+            playSound('shoot', 0.08);
 
             const spawnOffset = Math.max(this.owner.width, this.owner.height) / 2 + 5; 
             const startX = x + spawnOffset;

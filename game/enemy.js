@@ -9,8 +9,6 @@ class Enemy {
         this.speed = speed;
         this.timeStuck = 0; // Time in milliseconds the enemy has been stuck
         this.stuckThreshold = 500; // 0.5 seconds threshold
-        this.hitSound = hit_sound;
-        this.hitSound.volume = 0.6;
         this.name = "ERROR!";
         this.invincibilityFrames = 0;
         this.invincibilityDuration = 50;
@@ -54,8 +52,7 @@ class Enemy {
             this.destroy(worldContainer);
             return;
         }
-        this.hitSound.currentTime = 0;
-        this.hitSound.play();
+        playSound('hit', 0.6);
     }
 
     destroy(worldContainer) { // Accept container to remove graphics
