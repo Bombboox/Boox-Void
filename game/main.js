@@ -102,6 +102,7 @@ const main = () => {
     if (mobileCheck()) {
         isMobile = true;
         setupMobileControls();
+        repositionJoysticks();
     }
 }
 

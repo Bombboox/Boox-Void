@@ -97,17 +97,6 @@ class Player {
             }
         }
 
-        if(this.cameraFollow) {
-            worldContainer.x = cameraTarget.x;
-            worldContainer.y = cameraTarget.y;
-        }
-
-        const worldMouseX = (mouseX - worldContainer.x);
-        const worldMouseY = (mouseY - worldContainer.y);
-        
-        this.angle = Math.atan2(worldMouseY - this.position.y, worldMouseX - this.position.x);
-
-        this.move(deltaTime); 
         this.graphics.position.set(this.position.x, this.position.y);
 
         for(let i = 0; i < this.cannons.length; i++) {
@@ -121,6 +110,18 @@ class Player {
             cannon.graphics.rotation = this.angle;
             cannon.update(deltaTime); 
         }
+
+        if(this.cameraFollow) {
+            worldContainer.x = cameraTarget.x;
+            worldContainer.y = cameraTarget.y;
+        }
+
+        const worldMouseX = (mouseX - worldContainer.x);
+        const worldMouseY = (mouseY - worldContainer.y);
+        
+        this.angle = Math.atan2(worldMouseY - this.position.y, worldMouseX - this.position.x);
+
+        this.move(deltaTime); 
 
         // Handle firing
         if(mouseDown) {
