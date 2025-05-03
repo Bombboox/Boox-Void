@@ -14,6 +14,8 @@ class Player {
         this.alive = true; // Track if player is alive
         this.cameraFollow = true;
         this.cameraLerping = false;
+        this.healthBarInterval = 5000;
+        this.healthBarTimer = 0;
         
         // Invincibility frames
         this.invincible = false;
@@ -29,7 +31,7 @@ class Player {
         
         // Death text
         this.deathText = new PIXI.Text({
-            text: "YOU DIED",
+            text: isMobile ? "YOU HAVE PERISHED" : "YOU HAVE PERISHED\nPRESS R TO RESTART",
             style: {
                 fontFamily: 'Arial',
                 fontSize: 48,
@@ -141,6 +143,18 @@ class Player {
             this.graphics.circle(0, 0, this.radius);
             this.graphics.fill(this.color);
         }
+        this.renderHealthBar();
+    }
+
+    renderHealthBar() {
+        let hbt = clamp(this.healthBarTimer, 0, 1000) / 1000;
+        if(hbt > 0) {
+            this.healthBarTimer -= deltaTime;
+            this.graphics.rect(-30, -this.radius - 30, 60, 10);
+            this.graphics.fill({color: 0x808080, alpha: hbt});
+            this.graphics.rect(-30, -this.radius - 30, 60 * (this.hp / this.maxHp), 10);
+            this.graphics.fill({color: 0x008000, alpha: hbt});
+        }
     }
     
     die() {
@@ -206,7 +220,7 @@ class Player {
 
     takeDamage(damage) {
         if (this.invincible) return;
-        
+        this.healthBarTimer = this.healthBarInterval;
         this.hp -= damage;
         if(this.hp <= 0) {
             this.die();

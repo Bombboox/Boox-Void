@@ -56,6 +56,18 @@ let musicStarted = false;
 const fpsText = new PIXI.Text({text: "FPS: 0", style: {fontFamily: 'Arial', fontSize: 16, fill: 0xffffff }});
 fpsText.position.set(10, 10);
 
+// UI Buttons
+const homeButton = new PIXI.Text({text: "BACK", style: {fontFamily: 'Arial', fontSize: 24, fill: 0xffffff }});
+homeButton.position.set(10, 40);
+homeButton.eventMode = 'static';
+homeButton.cursor = 'pointer';
+
+const restartButton = new PIXI.Text({text: "RESTART", style: {fontFamily: 'Arial', fontSize: 24, fill: 0xffffff }});
+restartButton.position.set(10, 80);
+restartButton.eventMode = 'static';
+restartButton.cursor = 'pointer';
+restartButton.visible = false;
+
 const LEVEL_ONE_WAVES = new Waves(worldContainer, [
     new Wave(1, {
         "DefaultEnemy": 1,
@@ -97,12 +109,30 @@ const main = () => {
         viewRadius: 2000 
     });
 
+    // Setup button interactions
+    homeButton.on('pointerdown', () => {
+        window.parent.postMessage("Escape", "*");
+    });
+
+    restartButton.on('pointerdown', () => {
+        if(!player.alive) {
+            player.revive();
+            destroyAllEnemies();
+            stopAllMusic();
+            configureLevel("levels/level_1.json", player, worldContainer);
+            LEVEL_ONE_WAVES.reset();
+            restartButton.visible = false;
+        }
+    });
+
     app.ticker.add(gameLoop);
     
     if (mobileCheck()) {
         isMobile = true;
         setupMobileControls();
         repositionJoysticks();
+        app.stage.addChild(restartButton);
+        app.stage.addChild(homeButton);
     }
 
     tryPlayMusic();
@@ -142,6 +172,11 @@ const gameLoop = (ticker) => {
         LEVEL_ONE_WAVES.update(deltaTime, enemies);
     
         fpsText.text = `FPS: ${Math.round(app.ticker.FPS)}`;
+        
+        // Show restart button if player dies
+        if (!player.alive && !restartButton.visible) {
+            restartButton.visible = true;
+        }
     }
 }
 
@@ -167,6 +202,7 @@ window.addEventListener("keydown", (event) => {
 
                 configureLevel("levels/level_1.json", player, worldContainer);
                 LEVEL_ONE_WAVES.reset();
+                restartButton.visible = false;
             }
             break;
         default:
