@@ -99,7 +99,7 @@ const main = () => {
 
     createHealthBar(worldContainer);
     player.initializeGraphics(worldContainer); 
-    player.cannons.push(new DefaultCannon(worldContainer));
+    player.cannons.push(new ExplosiveCannon(worldContainer));
 
     configureLevel("levels/level_1.json", player, worldContainer);
 
@@ -135,7 +135,7 @@ const main = () => {
         app.stage.addChild(homeButton);
     }
 
-    tryPlayMusic();
+    //tryPlayMusic();
 }
 
 const gameLoop = (ticker) => {
@@ -183,6 +183,12 @@ const gameLoop = (ticker) => {
 window.addEventListener("mousemove", (event) => {
     mouseX = event.clientX;
     mouseY = event.clientY;
+});
+
+window.addEventListener("message", (event) => {
+    if (event.data === "GameStarted") {
+        tryPlayMusic();
+    }
 });
 
 window.addEventListener("keydown", (event) => {

@@ -337,6 +337,7 @@
             contentFrame.src = "game.html";
             container.style.display = 'none';
             pauseContainer.style.display = 'none';
+            contentFrame.contentWindow.postMessage("GameStarted", "*");
         }
 
         function closeGame() {
