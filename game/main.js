@@ -99,7 +99,7 @@ const main = () => {
 
     createHealthBar(worldContainer);
     player.initializeGraphics(worldContainer); 
-    player.cannons.push(new ExplosiveCannon(worldContainer));
+    player.cannons.push(new DefaultCannon(worldContainer));
 
     configureLevel("levels/level_1.json", player, worldContainer);
 
