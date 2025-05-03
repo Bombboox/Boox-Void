@@ -135,7 +135,7 @@ const main = () => {
         app.stage.addChild(homeButton);
     }
 
-    //tryPlayMusic();
+    tryPlayMusic();
 }
 
 const gameLoop = (ticker) => {
