@@ -51,6 +51,7 @@ var worldRightBoundary = 1000;
 var enemiesPaused = false;
 
 let musicStarted = false;
+let audioContextUnlocked = false; // Flag to track if audio context is unlocked
 
 // FPS Counter Text
 const fpsText = new PIXI.Text({text: "FPS: 0", style: {fontFamily: 'Arial', fontSize: 16, fill: 0xffffff }});
@@ -133,9 +134,11 @@ const main = () => {
         repositionJoysticks();
         app.stage.addChild(restartButton);
         app.stage.addChild(homeButton);
-    }
+    } 
 
-    tryPlayMusic();
+    // Add listener for the first interaction to unlock audio
+    window.addEventListener('mousedown', handleFirstInteraction, { once: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { once: true }); // Also listen for touch start
 }
 
 const gameLoop = (ticker) => {
@@ -177,6 +180,15 @@ const gameLoop = (ticker) => {
         if (!player.alive && !restartButton.visible) {
             restartButton.visible = true;
         }
+
+        let musicTimeout = setTimeout(() => {
+            if(!musicStarted) {
+                playMusic('music_main', true, 0.2);
+                musicStarted = true;
+                audioContextUnlocked = true;
+                clearTimeout(musicTimeout);
+            }
+        }, 1000);
     }
 }
 
@@ -187,7 +199,7 @@ window.addEventListener("mousemove", (event) => {
 
 window.addEventListener("message", (event) => {
     if (event.data === "GameStarted") {
-        tryPlayMusic();
+        attemptAudioUnlock();
     }
 });
 
@@ -205,7 +217,7 @@ window.addEventListener("keydown", (event) => {
 
                 destroyAllEnemies();
                 stopAllMusic();
-                tryPlayMusic();
+                attemptAudioUnlock();
 
                 configureLevel("levels/level_1.json", player, worldContainer);
                 LEVEL_ONE_WAVES.reset();
@@ -245,19 +257,35 @@ window.mobileCheck = function() {
     return check;
 };
 
-const tryPlayMusic = () => {
-    let x = setTimeout(() => {
-        if (musicStarted) {
-            clearTimeout(x);
-            return;
+const handleFirstInteraction = () => {
+    console.log("First interaction detected, attempting audio unlock");
+    attemptAudioUnlock();
+};
+
+const attemptAudioUnlock = () => {
+    if (audioContextUnlocked) {
+        if (!musicStarted) {
+            const musicInstance = playMusic('music_main', true, 0.2);
+            if (musicInstance && musicInstance.playState !== 'playFailed') {
+                console.log("Main music started successfully after context unlock.");
+                musicStarted = true;
+            } else if (musicInstance && musicInstance.playState === 'playFailed') {
+                 console.warn("Audio context unlocked, but main music failed to play.");
+            }
         }
-        const musicInstance = playMusic('music_main', true, 0.2);
-        if (musicInstance && musicInstance.playState !== 'playFailed') {
-            musicStarted = true;;
-        } else {
-            console.log("Failed to play music initially (likely needs interaction). Will retry on interaction.");
-        }
-    }, 1000);
+        return;
+    }
+
+    console.log("Attempting to unlock audio context and play music");
+    const musicInstance = playMusic('music_main', true, 0.2);
+
+    if (musicInstance && musicInstance.playState !== 'playFailed') {
+        console.log("Audio context unlocked and music started successfully!");
+        audioContextUnlocked = true;
+        musicStarted = true;
+    } else {
+        console.warn("Failed to unlock audio context/play music on first attempt. Retrying on next interaction is implicitly handled.");
+    }
 };
 
 function setupMobileControls() {
@@ -299,9 +327,9 @@ function setupMobileControls() {
     aimJoystick = nipplejs.create(joystickOptionsRight);
 
     const startMusicOnInteraction = () => {
-        if (!musicStarted) {
-            tryPlayMusic();
-        }
+        console.log("Joystick interaction detected, attempting audio unlock.");
+        attemptAudioUnlock(); // Use the new unlock function
+        // Remove listeners after the first interaction
         moveJoystick.off('start', startMusicOnInteraction);
         aimJoystick.off('start', startMusicOnInteraction);
     };

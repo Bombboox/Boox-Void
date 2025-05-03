@@ -6,7 +6,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <iframe id="contentFrame" allow="autoplay; fullscreen; microphone" playsinline></iframe>
+    <iframe id="contentFrame" allow="autoplay"></iframe>
     <title>Document</title>
     <style>
         * {
@@ -337,7 +337,10 @@
             contentFrame.src = "game.html";
             container.style.display = 'none';
             pauseContainer.style.display = 'none';
-            contentFrame.contentWindow.postMessage("GameStarted", "*");
+            contentFrame.onload = function() {
+                contentFrame.focus();
+                contentFrame.contentWindow.postMessage("GameStarted", "*");
+            };
         }
 
         function closeGame() {
@@ -420,8 +423,10 @@
             canvas.height = window.innerHeight;
         });
 
-        pauseContainer.addEventListener('pointerdown', function() {
-            pauseGame();
+        pauseContainer.addEventListener('pointerdown', function(event) {
+            if (event.target === pauseContainer) {
+                pauseGame();
+            }
         });
         
         main();
