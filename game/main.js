@@ -199,6 +199,7 @@ window.addEventListener("keydown", (event) => {
 
                 destroyAllEnemies();
                 stopAllMusic();
+                tryPlayMusic();
 
                 configureLevel("levels/level_1.json", player, worldContainer);
                 LEVEL_ONE_WAVES.reset();
