@@ -124,6 +124,7 @@ const main = () => {
             player.revive();
             destroyAllEnemies();
             stopAllMusic();
+            playMusic('music_main', true, 0.2);
             configureLevel("levels/level_1.json", player, worldContainer);
             LEVEL_ONE_WAVES.reset();
             restartButton.visible = false;
