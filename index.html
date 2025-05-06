@@ -6,207 +6,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <iframe id="contentFrame" allow="autoplay"></iframe>
-    <title>Document</title>
-    <style>
-        * {
-            user-select: none;
-            overflow: hidden;
-        }
-
-        .roboto-game {
-            font-family: "Roboto", sans-serif;
-            font-optical-sizing: auto;
-            font-weight: 100;
-            font-style: normal;
-            font-variation-settings:
-                "wdth" 100;
-        }
-
-        .container {
-            width: 100%;
-            height: 100%;
-            background-color: #000000;
-            position: absolute;
-            top: 0;
-            left: 0;
-            opacity: 0.8;
-            background-image:  linear-gradient(#000000 1px, transparent 1px), linear-gradient(to right, #000000 1px, #0e0d0d 1px);
-            background-size: 20px 20px;
-            z-index: 1;
-        }
-
-        .menu-button {
-            background-color: rgb(175, 157, 157);
-            color: #ffffff;
-            font-family: "Press Start 2P", system-ui;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
-            cursor: pointer;
-            box-shadow: 0 0.8em rgb(102, 97, 97);
-            font-weight: bold;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .menu-button:active {
-            box-shadow: none;
-            position: relative;
-            transform: translate(0px, 10px);
-        }
-
-        .button-container {
-            position: absolute;
-            top: 70%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-            z-index: 3;
-            padding-bottom: 1em;
-        }
-
-        .menu-button {
-            width: 200px;
-            height: 50px;
-        }
-
-        .menu-button:hover {
-            background-color: rgb(199, 187, 187);
-            color: #000000;
-        }
-
-        .title-container {
-            position: absolute;
-            top: 20%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: "Press Start 2P", system-ui;
-            font-size: 3.5vw;
-            text-wrap: nowrap;
-            z-index: 3;
-            animation: pulse 2s infinite ease-in-out;
-        }
-
-        #title {
-            color: rgb(199, 187, 187);
-        }
-
-        #menu-canvas {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-        }
-
-        #contentFrame {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        .pause-container {
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.69);
-            padding-bottom: 1em;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 4;
-            display: none;
-            place-items: center;
-            align-content: center;
-            gap: 5em;
-            font-family: "Press Start 2P", system-ui;
-            color: white;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .weapons_container {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 40%;
-            height: 70%;
-            background-color: rgb(204, 160, 77);
-            box-shadow: 0 0 0px 8px rgb(80, 61, 26);
-            border-radius: 8px;
-            z-index: 3;
-            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-y: auto;
-            overflow-x: hidden;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE and Edge */
-        }
-        
-        .weapons_container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari and Opera */
-        }
-
-        .weapon {
-            position: relative;
-            width: 100%;
-            min-height: 30%;
-            flex-shrink: 0;
-            background-color: rgb(204, 160, 77);
-            box-shadow: 0 0 0px 8px rgb(150, 115, 49);
-            z-index: 3;
-        }
-
-        .weapon_name {
-            position: relative;
-            top: 3%;
-            left: 1.5%;
-            font-family: "Press Start 2P", system-ui;
-            font-size: clamp(12px, 2vh, 20px);
-            color: rgb(58, 41, 10);
-            margin: 0;
-            padding: 10px;
-        }
-
-        .buy_button {
-            position: absolute;
-            right: 10px;
-            bottom: 30px;
-            width: 20%;
-            height: 5%;
-            background-color: #7194D6;
-            box-shadow: 0 0.8em #2f4d85;
-            color: #000000; 
-        }
-
-        .buy_button:active {
-            position: absolute;
-            box-shadow: none;
-            transform: translate(0px, 10px);
-        }
-        
-        @keyframes pulse {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.8; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-    </style>
+    <title>Boox Void</title>
+    <link rel="stylesheet" href="game/style.css">
+    <link rel="stylesheet" href="menu.css">
+    <script src="external/pixi.js"></script>
 </head>
 <body>
     <div class="pause-container" id="pause-container">
@@ -223,7 +26,7 @@
                 </div>
         
                 <div class="button-container">
-                    <button class="menu-button" onclick="openGame()">Play</button>
+                    <button class="menu-button" onclick="openPage('levels')">Play</button>
                     <button class="menu-button" onclick="openPage('shop')">Shop</button>
                     <button class="menu-button">Cannon</button>
                 </div>
@@ -253,183 +56,38 @@
                 </div>
             </div>
         </div>
+
+        <div class="page" id="levels">
+            <div class="container">
+                <div class="levels_container">
+                    <div class="level" id="level_1" onclick="openGame(1)">1</div>
+                    <div class="level" id="level_2" onclick="openGame(2)">2</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Page -->
+        <div class="page" id="game">
+            <div id="game-canvas-container"></div>
+            <!-- Mobile joysticks will be added here by script if needed -->
+        </div>
     </div>
-
-    <script src="external/pixi.js"></script> 
-    <script>
-        const canvas = document.getElementById('menu-canvas');
-        const ctx = canvas.getContext('2d');
-        const contentFrame = document.getElementById('contentFrame');
-        const container = document.getElementById('big_container');
-        const pauseContainer = document.getElementById('pause-container');
-        
-        // Set canvas dimensions to match window size
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const bullets = [];
-
-        var mouseX = 0;
-        var mouseY = 0;
-        var centerX = canvas.width/2;
-        var centerY = canvas.height/2.5;
-        var angle = 0;
-
-        function main() {
-            openPage('menu');
-            draw();
-        }
-        
-        function draw() {
-            requestAnimationFrame(draw);
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(angle);
-            
-            const rectWidth = 30;
-            const rectHeight = 15;
-            ctx.fillRect(30, -rectHeight/2, rectWidth, rectHeight);
-            
-            ctx.restore();
-
-            for (const [index, bullet] of bullets.entries()) {
-                bullet.x += Math.cos(bullet.angle) * bullet.speed;
-                bullet.y += Math.sin(bullet.angle) * bullet.speed;
-
-                ctx.beginPath();
-                ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                if(bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
-                    bullets.splice(index, 1);
-                }
-            }
-        }
-
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.arc(canvas.width/2, canvas.height/2, 50, 0, Math.PI * 2);
-
-        function fire() {
-            let len = 50;
-            let x = centerX + Math.cos(angle) * len;
-            let y = centerY + Math.sin(angle) * len;
-
-            bullets.push({
-                x: x,
-                y: y,
-                angle: angle,
-                speed: 10,
-                radius: 7.5,
-                color: 'white',
-            });
-        }
-
-        function openGame() {
-            contentFrame.src = "game.html";
-            container.style.display = 'none';
-            pauseContainer.style.display = 'none';
-            contentFrame.onload = function() {
-                contentFrame.focus();
-                contentFrame.contentWindow.postMessage("GameStarted", "*");
-            };
-        }
-
-        function closeGame() {
-            contentFrame.src = '';
-            container.style.display = 'block';
-            pauseContainer.style.display = 'none';
-        }
-
-        function pauseGame() {
-            if(contentFrame.contentWindow.paused) {
-                contentFrame.contentWindow.paused = false;
-                pauseContainer.style.display = 'none';
-            } else if(contentFrame.contentWindow.paused == false) {
-                contentFrame.contentWindow.paused = true;
-                pauseContainer.style.display = 'grid';
-            }
-        }
-
-        function openPage(page) {
-            document.getElementById(page).style.display = 'block';
-            let pages = document.getElementsByClassName('page');
-            for(let i = 0; i < pages.length; i++) {
-                if(pages[i].id !== page) {
-                    pages[i].style.display = 'none';
-                }
-            }
-        }
-
-        window.addEventListener('mousemove', function(event) {
-            mouseX = event.clientX;
-            mouseY = event.clientY;
-
-            let rect = canvas.getBoundingClientRect();
-            let canvasMouseX = mouseX - rect.left;
-            let canvasMouseY = mouseY - rect.top;
-            angle = Math.atan2(canvasMouseY - centerY, canvasMouseX - centerX);
-        });
-
-        window.addEventListener('resize', function() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            centerX = canvas.width/2;
-            centerY = canvas.height/2.5;
-        });
-
-        window.addEventListener('mousedown', function() {
-            fire();
-        });
-
-        document.addEventListener('keydown', function(event) {
-            switch(event.key) {
-                case 'Escape':
-                    pauseGame();
-                    break;
-            }
-        });
-
-        window.addEventListener('message', function(event) {
-            switch(event.data) {
-                case 'Escape':
-                    pauseGame();
-                    break;
-
-                case 'level_completed':
-                    setTimeout(() => {
-                        alert("THANKS FOR PLAYING BOOX-VOID DEMO 😘");
-                        closeGame();
-                    }, 1000);
-                    break;
-            }
-        });
-
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
-
-        // Update canvas size when window is resized
-        window.addEventListener('resize', function() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
-        pauseContainer.addEventListener('pointerdown', function(event) {
-            if (event.target === pauseContainer) {
-                pauseGame();
-            }
-        });
-        
-        main();
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+    <script src="https://code.createjs.com/1.0.0/soundjs.min.js"></script>
+    <script src="game/sounds.js"></script>
+    <script src="game/math.js"></script>
+    <script src="game/healthbar.js"></script>
+    <script src="game/armor.js"></script>
+    <script src="game/bullet.js"></script>
+    <script src="game/cannon.js"></script>
+    <script src="game/enemy.js"></script>
+    <script src="game/enemy_spawner.js"></script>
+    <script src="game/player.js"></script>
+    <script src="game/level_parser.js"></script>
+    <script src="game/waves.js"></script>
+    <script src="game/minimap.js"></script>
+    <script src="game/waveData.js"></script>
+    <script src="game/main.js"></script> 
+    <script src="menu.js"></script>
 </body>
 </html>

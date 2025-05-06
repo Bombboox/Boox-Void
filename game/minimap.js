@@ -131,9 +131,8 @@ class Minimap {
         this.graphics.setStrokeStyle({width: 0}); // No border for dots
         for (let i = 0; i < this.enemies.length; i++) {
             const enemy = this.enemies[i];
-            // Check if enemy is within view radius before converting
-            // Make sure we're accessing position correctly
-            if (!enemy || !enemy.position) continue;
+            // Skip enemy spawners, only render regular enemies
+            if (!enemy || !enemy.position || enemy instanceof EnemySpawner) continue;
             
             const dx = enemy.position.x - this.player.position.x;
             const dy = enemy.position.y - this.player.position.y;

@@ -61,8 +61,17 @@ class DefaultCannon extends Cannon {
             const startY = playerPosition.y + spawnOffset * Math.sin(angle);
 
             this.cooldown = this.fireRate;
-            // Create bullet and pass worldContainer for its graphics
-            return new this.bulletType(startX, startY, this.damage, this.bulletSpeed, this.bulletPierce, this.bulletSize, angle, this.worldContainer);
+            // Create bullet using options object
+            return new this.bulletType({
+                x: startX,
+                y: startY,
+                damage: this.damage,
+                speed: this.bulletSpeed,
+                pierce: this.bulletPierce,
+                radius: this.bulletSize,
+                angle: angle,
+                worldContainer: this.worldContainer
+            });
         } else {
             return null;
         }
@@ -111,8 +120,17 @@ class ExplosiveCannon extends Cannon {
             const startY = playerPosition.y + spawnOffset * Math.sin(angle);
 
             this.cooldown = this.fireRate;
-            // Create bullet and pass worldContainer for its graphics
-            return new this.bulletType(startX, startY, this.damage, this.bulletSpeed, this.bulletPierce, this.bulletSize, angle, this.worldContainer);
+            // Create bullet using options object
+            return new this.bulletType({
+                x: startX,
+                y: startY,
+                damage: this.damage,
+                speed: this.bulletSpeed,
+                pierce: this.bulletPierce,
+                radius: this.bulletSize,
+                angle: angle,
+                worldContainer: this.worldContainer
+            });
         } else {
             return null;
         }
@@ -161,12 +179,21 @@ class EnemyCannon extends Cannon {
             playSound('shoot', 0.08);
 
             const spawnOffset = Math.max(this.owner.width, this.owner.height) / 2 + 5; 
-            const startX = x + spawnOffset;
-            const startY = y + spawnOffset;
+            const startX = x; // Use the provided x, y directly as the spawn point
+            const startY = y; 
 
             this.cooldown = this.fireRate;
 
-            const bullet = new this.bulletType(startX, startY, this.damage, this.bulletSpeed, this.bulletPierce, this.bulletSize, angle, this.worldContainer);
+            const bullet = new this.bulletType({
+                x: startX,
+                y: startY,
+                damage: this.damage,
+                speed: this.bulletSpeed,
+                pierce: this.bulletPierce,
+                radius: this.bulletSize,
+                angle: angle,
+                worldContainer: this.worldContainer
+            });
             enemy_bullets.push(bullet); 
             return bullet; 
         } else {

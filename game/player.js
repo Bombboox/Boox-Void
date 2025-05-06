@@ -16,6 +16,7 @@ class Player {
         this.cameraLerping = false;
         this.healthBarInterval = 5000;
         this.healthBarTimer = 0;
+        this.hbtype = "circle";
         
         // Invincibility frames
         this.invincible = false;

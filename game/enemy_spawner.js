@@ -60,3 +60,17 @@ class DefaultBossSpawner extends EnemySpawner {
         super(x, y, DefaultBoss, 0, 0);
     }
 }
+
+class MiniBlueSpawner extends EnemySpawner {
+    constructor(x, y) {
+        super(x, y, MiniBlue, 5000, 0);
+    }
+}
+
+class ToxicGreenSpawner extends EnemySpawner {
+    constructor(x, y) {
+        super(x, y, ToxicGreen, 5000, 0);
+    }
+}
+
+

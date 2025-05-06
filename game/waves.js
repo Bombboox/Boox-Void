@@ -238,7 +238,7 @@ class Waves {
                 if(this.current_wave >= this.waveCount) {
                     this.completed = true;
                     this.showPraiseText();
-                    window.parent.postMessage("level_completed", '*');
+                    gameCompleted();
                     return;
                 }
                 this.in_between_waves = false;

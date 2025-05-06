@@ -1,22 +1,27 @@
 class Bullet {
-    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
-        this.position = vector(x, y);
-        this.damage = damage;
-        this.speed = speed;
-        this.pierce = pierce;
-        this.radius = radius;
-        this.angle = angle;
-        this.lifeTime = 3000;
-        this.worldContainer = worldContainer;
-        this.remainingHits = pierce;
+    constructor(options = {}) {
+        this.position = vector(options.x || 0, options.y || 0);
+        this.damage = options.damage || 1;
+        this.speed = options.speed || 0.5;
+        this.pierce = options.pierce || 1;
+        this.radius = options.radius || 5;
+        this.angle = options.angle || 0;
+        this.lifeTime = options.lifeTime || 3000;
+        this.worldContainer = options.worldContainer; // Required
+        this.remainingHits = this.pierce; // Use the assigned pierce value
+        this.color = options.color || 0xffffff;
+        this.hbtype = options.hbtype || "circle";
+
+        if (!this.worldContainer) {
+            console.error("Bullet created without worldContainer!");
+            // Handle error appropriately, maybe throw an error or return?
+        }
 
         this.graphics = new PIXI.Graphics();
         this.graphics.position.set(this.position.x, this.position.y);
         this.renderGraphics(); // Initial draw
-        if (this.worldContainer) {
+        if (this.worldContainer) { // Check again in case error handling didn't stop execution
             this.worldContainer.addChild(this.graphics);
-        } else {
-            console.error("Bullet created without world Container!");
         }
     }
 
@@ -38,7 +43,7 @@ class Bullet {
                 ...(shape.type === 'Circle' ? { radius: shape.radius } : {})
             };
 
-            const bulletCollider = { position: this.position, radius: this.radius };
+            const bulletCollider = { position: this.position, radius: this.radius, hbtype: this.hbtype };
 
             if (checkCollision(bulletCollider, shapeCollider)) {
                 this.destroy(); 
@@ -107,14 +112,14 @@ class Bullet {
 }
 
 class DefaultBullet extends Bullet {
-    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
-        super(x, y, damage, speed, pierce, radius, angle, worldContainer);
+    constructor(options = {}) {
+        super(options);
     }
 }
 
 class ExplosiveBullet extends Bullet {
-    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
-        super(x, y, damage, speed, pierce, radius, angle, worldContainer);
+    constructor(options = {}) {
+        super(options);
     }
 
     renderGraphics() {
@@ -130,7 +135,13 @@ class ExplosiveBullet extends Bullet {
     }
 
     explode() {
-        bullets.push(new Explosion(this.position.x, this.position.y, this.damage, this.speed, this.pierce, this.radius, this.angle, this.worldContainer));
+        bullets.push(new Explosion({
+             x: this.position.x,
+             y: this.position.y,
+             damage: this.damage,
+             radius: this.radius,
+             worldContainer: this.worldContainer
+        }));
     } 
 
     checkCollision() {
@@ -141,11 +152,14 @@ class ExplosiveBullet extends Bullet {
 }
 
 class Explosion extends Bullet {
-    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
-        super(x, y, damage, speed, pierce, radius, angle, worldContainer);
-        this.lifeTime = 150;
-        this.speed = 0;
-        this.pierce = Infinity;
+    constructor(options = {}) {
+        const explosionOptions = {
+            ...options,
+            lifeTime: 150,
+            speed: 0,
+            pierce: Infinity
+        };
+        super(explosionOptions);
     }
 
     renderGraphics() {
@@ -178,14 +192,14 @@ class Explosion extends Bullet {
 }
 
 class EnemyBullet extends Bullet {
-    constructor(x, y, damage, speed, pierce, radius, angle, worldContainer) {
-        super(x, y, damage, speed, pierce, radius, angle, worldContainer);
+    constructor(options = {}) {
+        super(options);
     }
 
     renderGraphics() {
         super.renderGraphics();
         this.graphics.circle(0, 0, this.radius);
-        this.graphics.fill({color: 0x808080});
+        this.graphics.fill({color: this.color});
     }   
 
     checkCollision() {

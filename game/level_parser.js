@@ -1,4 +1,5 @@
 var activeLevel = {
+    number: 1,
     objects: [], // Original objects from JSON
     shapes: [],  // Filtered shapes (Rectangles, Circles)
     points: []   // Filtered points (for spawn points, waypoints, etc.)
@@ -7,8 +8,9 @@ var activeLevel = {
 // Container for level graphics, added to worldContainer
 const levelGraphicsContainer = new PIXI.Container();
 
-async function loadLevel(filePath) {
+async function loadLevel(levelNumber) {
     try {
+        const filePath = `levels/level_${levelNumber}.json`;
         const response = await fetch(filePath);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -125,6 +127,12 @@ async function configureLevel(levelPath, player, worldContainer) { // Added asyn
                     break;
                 case "espawn":
                     enemies.push(new DefaultEnemySpawner(point.x, point.y));
+                    break;
+                case "espawn2":
+                    enemies.push(new MiniBlueSpawner(point.x, point.y));
+                    break;
+                case "espawn3":
+                    enemies.push(new ToxicGreenSpawner(point.x, point.y));
                     break;
                 case "bspawn":
                     enemies.push(new DefaultBossSpawner(point.x, point.y));
