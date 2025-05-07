@@ -4,6 +4,7 @@ class Enemy {
         this.target = vector(options.x || 0, options.y || 0);
         this.width = options.width || 50;
         this.height = options.height || 50;
+        this.radius = options.radius || 25;
         this.maxHp = options.hp || 10;
         this.hp = options.hp || 10;
         this.speed = options.speed || 0.25;
@@ -27,6 +28,14 @@ class Enemy {
             this.renderGraphics();
         } else if (!worldContainer) {
             console.error("Enemy initialized without worldContainer!");
+        }
+    }
+
+    refreshGraphics() {
+        if (this.isGraphicsInitialized) {
+            this.graphics.clear();
+            this.renderGraphics();
+            this._updateGraphicsPosition();
         }
     }
 
@@ -278,12 +287,11 @@ class MiniBlue extends Enemy {
             x: x,
             y: y,
             dmg: 20,
-            radius: 12.5,
             hp: 3,
             speed: 0.50,
-            name: "BLUE GUY"
+            radius: 12.5,
+            name: "MINI BLUE"
         });
-        this.radius = 12.5;
         this.hbtype = "circle";
         this.initializeGraphics(worldContainer);
     }
@@ -453,11 +461,11 @@ class DefaultBoss extends Enemy {
             }
         }
 
+        super.destroy(worldContainer);
+
         if(this.boss) {
             destroyAllEnemies();
             stopAllMusic();
         }
-
-        super.destroy(worldContainer);
     }
 }

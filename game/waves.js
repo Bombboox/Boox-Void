@@ -286,8 +286,8 @@ class Waves {
 }
 
 class Wave {
-    constructor(power_scale = 1.0, enemyTypes = null, special_instructions = null) {
-        this.power_scale = power_scale;
+    constructor(options = {}, enemyTypes = null, special_instructions = null) {
+        this.options = options;
         this.enemyTypes = enemyTypes || {};
         this.special_instructions = special_instructions;
         this.total_enemies = this.getTotalEnemies();
@@ -298,14 +298,20 @@ class Wave {
         
         if (Object.keys(this.enemyTypes).length === 0) {
             for(let spawner of enemy_spawners) {
-                spawner.power_scale = this.power_scale;
+                // Apply all options to the spawner
+                for (const [key, value] of Object.entries(this.options)) {
+                    spawner[key] = value;
+                }
                 spawner.spawns_remaining = 1; 
             }
             return;
         }
         
         for(let spawner of enemy_spawners) {
-            spawner.power_scale = this.power_scale;
+            // Apply all options to the spawner
+            for (const [key, value] of Object.entries(this.options)) {
+                spawner[key] = value;
+            }
  
             const spawnerType = spawner.constructor.name;
             let enemyType = null;

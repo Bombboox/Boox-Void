@@ -66,6 +66,46 @@ const WAVE_DATA = {
                 "ToxicGreen": 3,
             }
         }
+    ],
+
+    4: [
+        {
+            enemies: {
+                "DefaultEnemy": 1,
+                "MiniBlue": 1,
+            },
+            options: {
+                hp_scale: 3,
+                speed_scale: 0.5,
+                size_scale: 2.5,
+            }
+        },
+        {
+            enemies: {
+                "DefaultEnemy": 1,
+                "MiniBlue": 3,
+            },
+            options: {
+                hp_scale: 0.5,
+                speed_scale: 2,
+                size_scale: 0.75,
+                dmg_scale: 0.5,
+            }
+        },
+        {
+            enemies: {
+                "MiniBlue": 10,
+            },
+            options: {
+                hp_scale: 0.01,
+                speed_scale: 1,
+                size_scale: 1,
+                dmg_scale: 1,
+            },
+            special_instructions: () => {
+                EnemySpawner.setSpawnRateForType(MiniBlue, 500);
+            }
+        },
     ]
 };
 
@@ -78,7 +118,7 @@ function getWaveData(level, worldContainer) {
     const waveConfigs = WAVE_DATA[level];
     const waves = waveConfigs.map(config => {
         return new Wave(
-            config.power_scale || 1.0,
+            config.options || {},  
             config.enemies,
             config.special_instructions || null
         );

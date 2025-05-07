@@ -29,6 +29,11 @@ let historyIndex = -1; // Pointer to current state in history
 const GRID_SIZE = 50; // Base grid size constant
 let enemyTags = {}; // To store loaded enemy tags
 
+// New global variables for group resizing
+let isGroupResizing = false;
+let groupResizeHandle = null;
+let initialGroupState = null; // To store { boundingBox: {}, objects: [], center: {} }
+
 async function loadEnemyTags() {
     try {
         const response = await fetch('enemy_key.json'); // Assuming enemy_key.json is in the same directory or accessible path
@@ -166,31 +171,61 @@ function drawObjects() {
 
         // Highlight selected objects
         if (selectedObjects.includes(obj)) {
-            ctx.strokeStyle = 'yellow';
-            ctx.lineWidth = 2 / zoomLevel; // Adjust line width for zoom
-            if (obj.type === 'Rectangle') {
-                ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
-                
-                // Draw resize handles
-                if (currentTool === 'select') {
-                    drawResizeHandles(obj);
+            if (selectedObjects.length === 1) { // SINGLE SELECTION
+                ctx.strokeStyle = 'yellow';
+                ctx.lineWidth = 2 / zoomLevel; // Adjust line width for zoom
+                if (obj.type === 'Rectangle') {
+                    ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+                    if (currentTool === 'select' && !isDragging && !isResizing) { // Only show handles if not actively dragging/resizing this object
+                        drawResizeHandles(obj);
+                    }
+                } else if (obj.type === 'Circle') {
+                    ctx.beginPath();
+                    ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    if (currentTool === 'select' && !isDragging && !isResizing) {
+                        drawCircleResizeHandles(obj);
+                    }
+                } else if (obj.type === 'Point') {
+                    ctx.beginPath();
+                    ctx.arc(obj.x, obj.y, 8, 0, Math.PI * 2); // Slightly larger highlight for points
+                    ctx.stroke();
                 }
-            } else if (obj.type === 'Circle') {
-                ctx.beginPath();
-                ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
-                ctx.stroke();
-                
-                // Draw resize handles for circle
-                if (currentTool === 'select') {
-                    drawCircleResizeHandles(obj);
+            } else { // MULTIPLE SELECTION - highlight with a different color, group handles drawn later
+                ctx.strokeStyle = 'orange'; 
+                ctx.lineWidth = 1.5 / zoomLevel;
+                if (obj.type === 'Rectangle') {
+                    ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+                } else if (obj.type === 'Circle') {
+                    ctx.beginPath();
+                    ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else if (obj.type === 'Point') {
+                    ctx.beginPath();
+                    ctx.arc(obj.x, obj.y, 7, 0, Math.PI * 2); // Slightly different highlight for points in group
+                    ctx.stroke();
                 }
-            } else if (obj.type === 'Point') {
-                ctx.beginPath();
-                ctx.arc(obj.x, obj.y, 8, 0, Math.PI * 2);
-                ctx.stroke();
             }
         }
     });
+    
+    // If multiple objects selected and in select tool, draw group bounding box and handles
+    if (currentTool === 'select' && selectedObjects.length > 1) {
+        const groupBoundingBox = getGroupBoundingBox(selectedObjects);
+        if (groupBoundingBox) {
+            // Draw the group bounding box itself
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.6)'; // Yellow, semi-transparent
+            ctx.lineWidth = 1.5 / zoomLevel;
+            ctx.setLineDash([5 / zoomLevel, 3 / zoomLevel]); // Dashed line
+            ctx.strokeRect(groupBoundingBox.x, groupBoundingBox.y, groupBoundingBox.width, groupBoundingBox.height);
+            ctx.setLineDash([]); // Reset line dash
+
+            // Draw resize handles for the group (only if not currently resizing the group itself, to avoid flicker/redundancy)
+            if (!isGroupResizing) {
+                 drawGroupResizeHandles(groupBoundingBox);
+            }
+        }
+    }
     
     // Draw selection rectangle if selecting
     if (isSelecting) {
@@ -339,15 +374,42 @@ function handleMouseDown(e) {
         return;
     }
     
-    // Check if we're resizing
+    // Check if we're resizing (single object or group)
     if (currentTool === 'select') {
-        const handle = checkResizeHandle(mousePos);
-        if (handle) {
-            isResizing = true;
-            resizeHandle = handle;
-            dragStartX = mousePosRaw.x;
-            dragStartY = mousePosRaw.y;
-            return;
+        // Check for group resize first if multiple objects are selected
+        if (selectedObjects.length > 1) {
+            const groupBoundingBox = getGroupBoundingBox(selectedObjects);
+            if (groupBoundingBox) { // Ensure a box could be formed
+                const handle = checkGroupResizeHandle(mousePos, groupBoundingBox);
+                if (handle) {
+                    isGroupResizing = true;
+                    groupResizeHandle = handle;
+                    initialGroupState = {
+                        boundingBox: JSON.parse(JSON.stringify(groupBoundingBox)),
+                        objects: JSON.parse(JSON.stringify(selectedObjects)), // Deep copy of initial states
+                        center: { 
+                            x: groupBoundingBox.x + groupBoundingBox.width / 2, 
+                            y: groupBoundingBox.y + groupBoundingBox.height / 2 
+                        }
+                    };
+                    canvas.style.cursor = handle.cursor;
+                    // saveState(); // Already called at the top of handleMouseDown
+                    return;
+                }
+            }
+        }
+
+        // If not group resizing, check for single object resizing
+        if (selectedObjects.length === 1) {
+            const handle = checkResizeHandle(mousePos);
+            if (handle) {
+                isResizing = true;
+                resizeHandle = handle;
+                dragStartX = mousePosRaw.x; // mousePosRaw is fine here as it's about delta from initial click for single resize
+                dragStartY = mousePosRaw.y;
+                // saveState(); // Already called at the top of handleMouseDown
+                return;
+            }
         }
     }
     
@@ -470,8 +532,188 @@ function handleMouseDown(e) {
 function handleMouseMove(e) {
     const mousePos = getMousePos(e);
     const mousePosRaw = getMousePosWithoutOffset(e);
+
+    // Handle group resizing
+    if (isGroupResizing && groupResizeHandle && initialGroupState) {
+        const initialOverallBox = initialGroupState.boundingBox;
+        const groupInitialCenter = initialGroupState.center;
+        const initialObjectsState = initialGroupState.objects;
+
+        const minDimSize = 10; // Minimum dimension for any object/group during resize
+        const minAllowedSize = snapToGrid ? GRID_SIZE : minDimSize;
+
+        let currentMouseX = mousePos.x;
+        let currentMouseY = mousePos.y;
+
+        // Determine fixed edges/points based on initial box and handle (anchors for scaling)
+        const fixedRightEdge = initialOverallBox.x + initialOverallBox.width;
+        const fixedBottomEdge = initialOverallBox.y + initialOverallBox.height;
+        const fixedLeftEdge = initialOverallBox.x;
+        const fixedTopEdge = initialOverallBox.y;
+
+        if (snapToGrid && !e.ctrlKey) { // Snapping for non-uniform should snap mouse to grid for direct dimension calculation
+            currentMouseX = Math.round(currentMouseX / GRID_SIZE) * GRID_SIZE;
+            currentMouseY = Math.round(currentMouseY / GRID_SIZE) * GRID_SIZE;
+        } else if (snapToGrid && e.ctrlKey) {
+             // For uniform scaling with snap, the *scaled dimensions* should ideally snap, or the scale factor itself.
+             // Snapping currentMouseX/Y here before calculating scale might be okay for now.
+            currentMouseX = Math.round(currentMouseX / GRID_SIZE) * GRID_SIZE;
+            currentMouseY = Math.round(currentMouseY / GRID_SIZE) * GRID_SIZE;
+        }
+
+        let finalNewBoxX = initialOverallBox.x;
+        let finalNewBoxY = initialOverallBox.y;
+        let finalNewBoxWidth = initialOverallBox.width;
+        let finalNewBoxHeight = initialOverallBox.height;
+
+        if (e.ctrlKey && initialOverallBox.width > 0 && initialOverallBox.height > 0) {
+            // --- UNIFORM SCALING --- 
+            const initialAspectRatio = initialOverallBox.width / initialOverallBox.height;
+            let scale = 1;
+
+            const anchorX = groupResizeHandle.position.includes('l') ? fixedRightEdge : fixedLeftEdge;
+            const anchorY = groupResizeHandle.position.includes('t') ? fixedBottomEdge : fixedTopEdge;
+
+            const distMouseToAnchorX = Math.abs(currentMouseX - anchorX);
+            const distMouseToAnchorY = Math.abs(currentMouseY - anchorY);
+
+            let scaleBasedOnX = (initialOverallBox.width === 0) ? 1 : distMouseToAnchorX / initialOverallBox.width;
+            let scaleBasedOnY = (initialOverallBox.height === 0) ? 1 : distMouseToAnchorY / initialOverallBox.height;
+            
+            const handleType = groupResizeHandle.position;
+            if (handleType === 'l' || handleType === 'r') {
+                scale = scaleBasedOnX;
+            } else if (handleType === 't' || handleType === 'b') {
+                scale = scaleBasedOnY;
+            } else { // Corner handle
+                scale = Math.max(scaleBasedOnX, scaleBasedOnY);
+            }
+
+            // Enforce minimum size while maintaining aspect ratio
+            let proposedWidth = initialOverallBox.width * scale;
+            let proposedHeight = initialOverallBox.height * scale;
+
+            if (proposedWidth < minAllowedSize || proposedHeight < minAllowedSize) {
+                let scaleRequiredForMinWidth = (initialOverallBox.width === 0) ? Infinity : minAllowedSize / initialOverallBox.width;
+                let scaleRequiredForMinHeight = (initialOverallBox.height === 0) ? Infinity : minAllowedSize / initialOverallBox.height;
+                scale = Math.max(scale, scaleRequiredForMinWidth, scaleRequiredForMinHeight);
+            }
+            
+            finalNewBoxWidth = initialOverallBox.width * scale;
+            finalNewBoxHeight = initialOverallBox.height * scale;
+
+            if (groupResizeHandle.position.includes('l')) {
+                finalNewBoxX = anchorX - finalNewBoxWidth;
+            } else {
+                finalNewBoxX = anchorX; 
+            }
+            if (groupResizeHandle.position.includes('t')) {
+                finalNewBoxY = anchorY - finalNewBoxHeight;
+            } else {
+                finalNewBoxY = anchorY;
+            }
+
+        } else {
+            // --- NON-UNIFORM SCALING (existing refined logic) --- 
+            let tempBoxX = initialOverallBox.x;
+            let tempBoxY = initialOverallBox.y;
+            let tempBoxWidth = initialOverallBox.width;
+            let tempBoxHeight = initialOverallBox.height;
+
+            if (groupResizeHandle.position.includes('l')) {
+                tempBoxX = currentMouseX;
+                tempBoxWidth = fixedRightEdge - tempBoxX;
+            } else if (groupResizeHandle.position.includes('r')) {
+                tempBoxWidth = currentMouseX - tempBoxX; 
+            }
+
+            if (groupResizeHandle.position.includes('t')) {
+                tempBoxY = currentMouseY;
+                tempBoxHeight = fixedBottomEdge - tempBoxY;
+            } else if (groupResizeHandle.position.includes('b')) {
+                tempBoxHeight = currentMouseY - tempBoxY; 
+            }
+            
+            if (groupResizeHandle.position === 't' || groupResizeHandle.position === 'b') tempBoxWidth = initialOverallBox.width;
+            if (groupResizeHandle.position === 'l' || groupResizeHandle.position === 'r') tempBoxHeight = initialOverallBox.height;
+
+            // Enforce minimum size for non-uniform scaling
+            finalNewBoxX = tempBoxX;
+            finalNewBoxY = tempBoxY;
+            finalNewBoxWidth = tempBoxWidth;
+            finalNewBoxHeight = tempBoxHeight;
+
+            if (finalNewBoxWidth < minAllowedSize) {
+                if (groupResizeHandle.position.includes('l')) finalNewBoxX = fixedRightEdge - minAllowedSize;
+                finalNewBoxWidth = minAllowedSize;
+            }
+            if (finalNewBoxHeight < minAllowedSize) {
+                 if (groupResizeHandle.position.includes('t')) finalNewBoxY = fixedBottomEdge - minAllowedSize;
+                finalNewBoxHeight = minAllowedSize;
+            }
+        }
+        
+        // Calculate final scale factors based on the determined new box dimensions
+        let scaleX = (initialOverallBox.width === 0) ? 1 : finalNewBoxWidth / initialOverallBox.width;
+        let scaleY = (initialOverallBox.height === 0) ? 1 : finalNewBoxHeight / initialOverallBox.height;
+
+        selectedObjects.forEach((currentObj, index) => {
+            const initialObj = initialObjectsState[index]; 
+
+            let initialObjCenterX, initialObjCenterY;
+            if (initialObj.type === 'Rectangle') {
+                initialObjCenterX = initialObj.x + initialObj.width / 2;
+                initialObjCenterY = initialObj.y + initialObj.height / 2;
+            } else { 
+                initialObjCenterX = initialObj.x;
+                initialObjCenterY = initialObj.y;
+            }
+
+            const newTransformedCenterX = groupInitialCenter.x + (initialObjCenterX - groupInitialCenter.x) * scaleX;
+            const newTransformedCenterY = groupInitialCenter.y + (initialObjCenterY - groupInitialCenter.y) * scaleY;
+
+            if (currentObj.type === 'Rectangle') {
+                currentObj.width = initialObj.width * Math.abs(scaleX);
+                currentObj.height = initialObj.height * Math.abs(scaleY);
+                currentObj.x = newTransformedCenterX - currentObj.width / 2;
+                currentObj.y = newTransformedCenterY - currentObj.height / 2;
+            } else if (currentObj.type === 'Circle') {
+                let radiusScale;
+                if (e.ctrlKey && initialOverallBox.width > 0 && initialOverallBox.height > 0) { // Uniform scaling for group
+                    // Use the common scale factor (scaleX and scaleY are same here)
+                    radiusScale = Math.abs(scaleX); // or scaleY, they are the same
+                } else {
+                    // Non-uniform group scaling, existing logic for circle radius based on handle type
+                    const handlePos = groupResizeHandle.position;
+                    if (handlePos === 'l' || handlePos === 'r') { 
+                        radiusScale = Math.abs(scaleX);
+                    } else if (handlePos === 't' || handlePos === 'b') { 
+                        radiusScale = Math.abs(scaleY);
+                    } else { 
+                        radiusScale = (Math.abs(scaleX) + Math.abs(scaleY)) / 2;
+                    }
+                    if (((handlePos === 'l' || handlePos === 'r') && initialOverallBox.width === 0) ||
+                        ((handlePos === 't' || handlePos === 'b') && initialOverallBox.height === 0) ||
+                        (handlePos.length === 2 && (initialOverallBox.width === 0 || initialOverallBox.height === 0)) ){
+                        radiusScale = 1; // Prevent scaling if dominant dimension was zero
+                    }
+                }
+                currentObj.radius = initialObj.radius * radiusScale;
+                currentObj.radius = Math.max(minAllowedSize / 2, currentObj.radius); // Min radius, e.g. half of minAllowedSize
+                currentObj.x = newTransformedCenterX;
+                currentObj.y = newTransformedCenterY;
+            } else if (currentObj.type === 'Point') {
+                currentObj.x = newTransformedCenterX;
+                currentObj.y = newTransformedCenterY;
+            }
+        });
+
+        updatePropertiesPanel();
+        draw();
+        return;
+    }
     
-    // Handle resizing
+    // Handle resizing (single object)
     if (isResizing && resizeHandle) {
         const obj = resizeHandle.obj;
         const minSize = snapToGrid ? GRID_SIZE : 10;
@@ -556,8 +798,17 @@ function handleMouseMove(e) {
     }
     
     // Update cursor based on resize handles
-    if (currentTool === 'select' && !isDragging && !isSelecting && !isPanning) {
-        const handle = checkResizeHandle(mousePos);
+    if (currentTool === 'select' && !isDragging && !isSelecting && !isPanning && !isResizing && !isGroupResizing) {
+        let handle = null;
+        if (selectedObjects.length === 1) {
+            handle = checkResizeHandle(mousePos);
+        } else if (selectedObjects.length > 1) {
+            const groupBoundingBox = getGroupBoundingBox(selectedObjects);
+            if (groupBoundingBox) {
+                 handle = checkGroupResizeHandle(mousePos, groupBoundingBox);
+            }
+        }
+        
         if (handle) {
             canvas.style.cursor = handle.cursor;
         } else {
@@ -621,6 +872,14 @@ function handleMouseUp(e) {
         isResizing = false;
         resizeHandle = null;
         canvas.style.cursor = 'default';
+    }
+
+    if (isGroupResizing) {
+        isGroupResizing = false;
+        groupResizeHandle = null;
+        initialGroupState = null; // Clear the initial state
+        canvas.style.cursor = 'default';
+        saveState(); // Save state after group resizing is complete
     }
     
     if (isSelecting) {
@@ -1361,4 +1620,96 @@ function rotateSelectedObjects(degrees) {
 
     updatePropertiesPanel(); // Update panel if dimensions changed
     draw();
+}
+
+function getGroupBoundingBox(objectsArray) {
+    if (!objectsArray || objectsArray.length === 0) {
+        return null;
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+    objectsArray.forEach(obj => {
+        let objMinX, objMinY, objMaxX, objMaxY;
+        if (obj.type === 'Rectangle') {
+            objMinX = obj.x;
+            objMinY = obj.y;
+            objMaxX = obj.x + obj.width;
+            objMaxY = obj.y + obj.height;
+        } else if (obj.type === 'Circle') {
+            objMinX = obj.x - obj.radius;
+            objMinY = obj.y - obj.radius;
+            objMaxX = obj.x + obj.radius;
+            objMaxY = obj.y + obj.radius;
+        } else if (obj.type === 'Point') {
+            // Points have no dimensions for bounding box calculation purposes,
+            // but we can use their position to ensure they are included.
+            objMinX = obj.x;
+            objMinY = obj.y;
+            objMaxX = obj.x;
+            objMaxY = obj.y;
+        } else {
+            return null; // Unknown object type
+        }
+        minX = Math.min(minX, objMinX);
+        minY = Math.min(minY, objMinY);
+        maxX = Math.max(maxX, objMaxX);
+        maxY = Math.max(maxY, objMaxY);
+    });
+
+    if (minX === Infinity || minY === Infinity || maxX === -Infinity || maxY === -Infinity) {
+        return null; // Should not happen if objectsArray is not empty and types are known
+    }
+
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+function drawGroupResizeHandles(groupBoundingBox) {
+    if (!groupBoundingBox) return;
+
+    const handles = [
+        { x: groupBoundingBox.x, y: groupBoundingBox.y, cursor: 'nwse-resize', position: 'tl' },
+        { x: groupBoundingBox.x + groupBoundingBox.width, y: groupBoundingBox.y, cursor: 'nesw-resize', position: 'tr' },
+        { x: groupBoundingBox.x, y: groupBoundingBox.y + groupBoundingBox.height, cursor: 'nesw-resize', position: 'bl' },
+        { x: groupBoundingBox.x + groupBoundingBox.width, y: groupBoundingBox.y + groupBoundingBox.height, cursor: 'nwse-resize', position: 'br' },
+        { x: groupBoundingBox.x + groupBoundingBox.width / 2, y: groupBoundingBox.y, cursor: 'ns-resize', position: 't' },
+        { x: groupBoundingBox.x + groupBoundingBox.width, y: groupBoundingBox.y + groupBoundingBox.height / 2, cursor: 'ew-resize', position: 'r' },
+        { x: groupBoundingBox.x + groupBoundingBox.width / 2, y: groupBoundingBox.y + groupBoundingBox.height, cursor: 'ns-resize', position: 'b' },
+        { x: groupBoundingBox.x, y: groupBoundingBox.y + groupBoundingBox.height / 2, cursor: 'ew-resize', position: 'l' }
+    ];
+
+    ctx.fillStyle = 'yellow'; // Distinct color for group handles
+    ctx.strokeStyle = 'black';
+    handles.forEach(handle => {
+        ctx.beginPath();
+        ctx.rect(handle.x - (4 / zoomLevel), handle.y - (4 / zoomLevel), (8 / zoomLevel), (8 / zoomLevel)); // Draw small squares
+        ctx.fill();
+        ctx.stroke();
+    });
+}
+
+function checkGroupResizeHandle(mousePos, groupBoundingBox) {
+    if (!groupBoundingBox) return null;
+
+    const handles = [
+        { x: groupBoundingBox.x, y: groupBoundingBox.y, cursor: 'nwse-resize', position: 'tl' },
+        { x: groupBoundingBox.x + groupBoundingBox.width, y: groupBoundingBox.y, cursor: 'nesw-resize', position: 'tr' },
+        { x: groupBoundingBox.x, y: groupBoundingBox.y + groupBoundingBox.height, cursor: 'nesw-resize', position: 'bl' },
+        { x: groupBoundingBox.x + groupBoundingBox.width, y: groupBoundingBox.y + groupBoundingBox.height, cursor: 'nwse-resize', position: 'br' },
+        { x: groupBoundingBox.x + groupBoundingBox.width / 2, y: groupBoundingBox.y, cursor: 'ns-resize', position: 't' },
+        { x: groupBoundingBox.x + groupBoundingBox.width, y: groupBoundingBox.y + groupBoundingBox.height / 2, cursor: 'ew-resize', position: 'r' },
+        { x: groupBoundingBox.x + groupBoundingBox.width / 2, y: groupBoundingBox.y + groupBoundingBox.height, cursor: 'ns-resize', position: 'b' },
+        { x: groupBoundingBox.x, y: groupBoundingBox.y + groupBoundingBox.height / 2, cursor: 'ew-resize', position: 'l' }
+    ];
+
+    for (const handle of handles) {
+        // Using square handles, check if mouse is within the square
+        const handleDrawSize = 8 / zoomLevel; // Matches drawGroupResizeHandles
+        const halfHandleDrawSize = handleDrawSize / 2;
+        if (mousePos.x >= handle.x - halfHandleDrawSize && mousePos.x <= handle.x + halfHandleDrawSize &&
+            mousePos.y >= handle.y - halfHandleDrawSize && mousePos.y <= handle.y + halfHandleDrawSize) {
+            return { position: handle.position, cursor: handle.cursor };
+        }
+    }
+    return null;
 }
