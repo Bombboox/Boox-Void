@@ -218,35 +218,24 @@ function stopGameLogic(keepAppRunning = false) {
     stopAllMusic(); // Stop any playing music
     musicStarted = false;
 
-    // Optionally destroy the Pixi app itself if not keeping it
-    // if (!keepAppRunning && appInitialized) {
-    //     app.destroy(true, { children: true, texture: true, baseTexture: true });
-    //     appInitialized = false;
-    // }
     removeGlobalEventListeners(); // Remove listeners when stopping completely
 }
 
 function pauseGameLogic() {
     if (gameRunning) {
         paused = true;
-        // Stop music or lower volume?
-        // stopAllMusic(); or adjust volume
     }
 }
 
 function resumeGameLogic() {
     if (gameRunning) {
         paused = false;
-        // Resume music?
-        // Maybe replay the relevant music track if needed
     }
 }
 
 function isGamePaused() {
     return paused;
 }
-
-// --- End Game Control Functions ---
 
 const createAudioOverlay = () => {
     if (!isMobile) return;
@@ -384,7 +373,7 @@ function handleMouseUp() {
 function handleResize() {
     if (!appInitialized) return; // Don't resize if app not ready
     app.renderer.resize(window.innerWidth, window.innerHeight);
-    // Resolution might not need setting again, but autoDensity should handle it.
+    app.renderer.resolution = devicePixelRatio;
 
     if (isMobile) {
         repositionJoysticks();
@@ -449,32 +438,119 @@ function destroyMobileControls() {
     if (containerRight) containerRight.remove();
 }
 
+function setupMobileControls() {
+    const joystickContainerLeft = document.createElement('div');
+    joystickContainerLeft.id = 'joystick-container-left';
+    joystickContainerLeft.style.position = 'absolute';
+    joystickContainerLeft.style.bottom = '150px';
+    joystickContainerLeft.style.left = '150px';
+    joystickContainerLeft.style.width = '150px';
+    joystickContainerLeft.style.height = '150px';
+    joystickContainerLeft.style.zIndex = '1000';
+    document.body.appendChild(joystickContainerLeft);
+
+    const joystickContainerRight = document.createElement('div');
+    joystickContainerRight.id = 'joystick-container-right';
+    joystickContainerRight.style.position = 'absolute';
+    joystickContainerRight.style.bottom = '150px';
+    joystickContainerRight.style.right = '150px';
+    joystickContainerRight.style.width = '150px';
+    joystickContainerRight.style.height = '150px';
+    joystickContainerRight.style.zIndex = '1000';
+    document.body.appendChild(joystickContainerRight);
+
+    const joystickOptionsLeft = {
+        zone: joystickContainerLeft,
+        mode: 'static',
+        position: { left: '-20%', top: '120%' },
+        color: 'white',
+        size: 100
+    };
+
+    const joystickOptionsRight = {
+        zone: joystickContainerRight,
+        mode: 'static',
+        position: { left: '120%', top: '120%' },
+        color: 'white',
+        size: 100
+    };
+
+    moveJoystick = nipplejs.create(joystickOptionsLeft);
+    aimJoystick = nipplejs.create(joystickOptionsRight);
+
+    const startMusicOnInteraction = () => {
+        console.log("Joystick interaction detected, attempting audio unlock.");
+        attemptAudioUnlock();
+
+        moveJoystick.off('start', startMusicOnInteraction);
+        aimJoystick.off('start', startMusicOnInteraction);
+    };
+
+    moveJoystick.on('start', startMusicOnInteraction);
+    aimJoystick.on('start', startMusicOnInteraction);
+
+    moveJoystick.on('move', (evt, data) => {
+        const speed = 5;
+        const angle = data.angle.radian;
+        const force = Math.min(data.force, 1.0);
+
+        const vx = Math.cos(angle) * speed * force;
+        const vy = Math.sin(angle) * speed * force * -1;
+
+        if (player) {
+            keyboard['w'] = vy < -speed * 0.2;
+            keyboard['s'] = vy > speed * 0.2;
+            keyboard['a'] = vx < -speed * 0.2;
+            keyboard['d'] = vx > speed * 0.2;
+        } else {
+            console.warn("Player object or body not accessible for movement joystick.");
+        }
+    });
+
+    moveJoystick.on('end', () => {
+        keyboard['w'] = false;
+        keyboard['s'] = false;
+        keyboard['a'] = false;
+        keyboard['d'] = false;
+    });
+
+    aimJoystick.on('move', (evt, data) => {
+        const playerScreenPos = worldContainer.toGlobal(player.graphics.position);
+        const angle = data.angle.radian;
+        const distance = 100;
+
+        mouseX = playerScreenPos.x + Math.cos(angle) * distance;
+        mouseY = playerScreenPos.y - Math.sin(angle) * distance;
+
+        mouseDown = true;
+    });
+
+    aimJoystick.on('end', () => {
+        mouseDown = false;
+    });
+
+    repositionJoysticks();
+}
+
 function updateMobileInput() {
     if (!mouseDown && aimJoystick && player) {
-        
+        const playerScreenPos = worldContainer.toGlobal(player.graphics.position);
     }
 }
 
 function repositionJoysticks() {
     if (!isMobile || !moveJoystick || !aimJoystick) return;
 
-    const padding = 50; // Distance from edges
-    const size = 150; // Size of the joystick zone
-
     const containerLeft = document.getElementById('joystick-container-left');
     const containerRight = document.getElementById('joystick-container-right');
 
     if(containerLeft) {
-        containerLeft.style.width = `${size}px`;
-        containerLeft.style.height = `${size}px`;
-        containerLeft.style.bottom = `${padding}px`;
-        containerLeft.style.left = `${padding}px`;
+        containerLeft.style.bottom = '150px';
+        containerLeft.style.left = '150px';
     }
     if(containerRight) {
-        containerRight.style.width = `${size}px`;
-        containerRight.style.height = `${size}px`;
-        containerRight.style.bottom = `${padding}px`;
-        containerRight.style.right = `${padding}px`;
+        containerRight.style.bottom = '150px';
+        containerRight.style.right = '150px';
     }
 }
 

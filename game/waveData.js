@@ -48,6 +48,24 @@ const WAVE_DATA = {
                 "DefaultEnemy": 3,
             }
         }
+    ],
+
+    3: [
+        {
+            enemies: {
+                "ToxicGreen": 1,
+            }
+        },
+        {
+            enemies: {
+                "ToxicGreen": 2,
+            }
+        },
+        {
+            enemies: {
+                "ToxicGreen": 3,
+            }
+        }
     ]
 };
 

@@ -27,6 +27,20 @@ let snapToGrid = false; // Track if grid snapping is enabled
 let actionHistory = []; // Array to store state history for undo
 let historyIndex = -1; // Pointer to current state in history
 const GRID_SIZE = 50; // Base grid size constant
+let enemyTags = {}; // To store loaded enemy tags
+
+async function loadEnemyTags() {
+    try {
+        const response = await fetch('enemy_key.json'); // Assuming enemy_key.json is in the same directory or accessible path
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        enemyTags = await response.json();
+        console.log("Enemy tags loaded:", enemyTags);
+    } catch (error) {
+        console.error("Error loading enemy tags:", error);
+    }
+}
 
 function saveState() {
     // Clear future history if we undo and then make a new change
@@ -878,6 +892,23 @@ function updatePropertiesPanel() {
             input.addEventListener('change', (e) => {
                 saveState(); // Save state before property change
                 obj[prop] = (input.type === 'number') ? parseFloat(e.target.value) : e.target.value;
+                // If this is the tag input and a preset dropdown exists, sync dropdown
+                if (prop === 'tag' && obj.type === 'Point') {
+                    const presetDropdown = propertiesPanel.querySelector('.enemy-preset-dropdown');
+                    if (presetDropdown) {
+                        let foundMatch = false;
+                        for (const option of presetDropdown.options) {
+                            if (option.value === e.target.value) {
+                                presetDropdown.value = e.target.value;
+                                foundMatch = true;
+                                break;
+                            }
+                        }
+                        if (!foundMatch) {
+                            presetDropdown.value = ""; // Reset to default if custom tag
+                        }
+                    }
+                }
                 draw(); // Redraw when properties change
                 saveState(); // Save state after property change
             });
@@ -885,6 +916,52 @@ function updatePropertiesPanel() {
             propContainer.appendChild(label);
             propContainer.appendChild(input);
             propertiesPanel.appendChild(propContainer);
+
+            // If the object is a Point and the property is 'tag', add the enemy preset dropdown
+            if (obj.type === 'Point' && prop === 'tag') {
+                const dropdownContainer = document.createElement('div');
+                dropdownContainer.style.marginTop = '5px';
+
+                const dropdownLabel = document.createElement('label');
+                dropdownLabel.textContent = 'Enemy Preset: ';
+                dropdownLabel.style.marginRight = '5px';
+
+                const selectDropdown = document.createElement('select');
+                selectDropdown.className = 'enemy-preset-dropdown'; // Add a class for potential styling or selection
+
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.textContent = "-- Select Enemy --";
+                selectDropdown.appendChild(defaultOption);
+
+                // Populate with enemy tags
+                for (const enemyName in enemyTags) {
+                    const option = document.createElement('option');
+                    option.value = enemyTags[enemyName];
+                    option.textContent = enemyName;
+                    selectDropdown.appendChild(option);
+                }
+
+                // Set current value
+                selectDropdown.value = obj.tag || "";
+
+                selectDropdown.addEventListener('change', (e) => {
+                    saveState();
+                    const newTag = e.target.value;
+                    obj.tag = newTag;
+                    // Update the text input field as well
+                    if (input && input.type === 'text') { // input here is the tag text input
+                        input.value = newTag;
+                    }
+                    draw();
+                    saveState();
+                });
+
+                dropdownContainer.appendChild(dropdownLabel);
+                dropdownContainer.appendChild(selectDropdown);
+                propContainer.appendChild(dropdownContainer); // Append to the tag's property container
+            }
         });
     } else if (selectedObjects.length > 1) {
         propertiesPanel.innerHTML = `<p>Multiple objects selected (${selectedObjects.length})</p>`;
@@ -1094,7 +1171,8 @@ function importLevel(file) {
 
 // Event Listeners
 window.addEventListener('resize', resizeCanvas);
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => { // Make async
+    await loadEnemyTags(); // Load enemy tags before initializing the rest
     resizeCanvas(); // Initial resize and draw
     saveState(); // Save initial empty state
     

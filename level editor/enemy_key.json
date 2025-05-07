@@ -1,0 +1,6 @@
+{
+    "Default Enemy": "espawn",
+    "Mini Blue": "espawn2",
+    "Toxic Green": "espawn3",
+    "Default Boss": "bspawn"
+}
