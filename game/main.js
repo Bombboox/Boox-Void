@@ -31,6 +31,7 @@ var player = null; // Initialize player later
 const bullets = [];
 const enemy_bullets = [];
 const enemies = [];
+let lighting = null; // Add this line
 
 const gridSize = 50; 
 const gridColor = 0xffffff; 
@@ -71,7 +72,9 @@ var restartButton = null;
 var currentWaves = null;
 var minimap = null;
 
-// --- New Game Control Functions ---
+// Background graphics
+var backgroundGraphics = null;
+var backgroundColor = 0x000000;
 
 async function startGame(level) {
     if (!appInitialized) {
@@ -79,27 +82,33 @@ async function startGame(level) {
         return;
     }
     if (gameRunning) {
-        console.log("Game already running, resetting for new level.");
-        stopGameLogic(true); // Stop existing game before starting new one
+        stopGameLogic(true); 
     }
 
-    console.log(`Starting game for level ${level}`);
     gameRunning = true;
     paused = false;
 
-    // Reset game state
-    worldContainer.removeChildren(); // Clear previous elements
+    // reset game state
+    worldContainer.removeChildren(); 
     bullets.length = 0;
     enemy_bullets.length = 0;
     enemies.length = 0;
-    keyboard.length = 0; // Clear keyboard state
+    keyboard.length = 0; 
     mouseDown = false;
-    musicStarted = false; // Reset music flag
+    musicStarted = false; 
 
-    // Re-create player
+    // Create black background
+    backgroundGraphics = new PIXI.Graphics();
+    backgroundGraphics.rect(worldContainer.x, worldContainer.y, window.innerWidth, window.innerHeight);
+    backgroundGraphics.fill(backgroundColor);
+    backgroundGraphics.zIndex = -100; // Ensure it's behind everything
+    worldContainer.addChild(backgroundGraphics);
+
     player = new Player(0, 0, 20, 0xffffff);
+    lighting = new Lighting(worldContainer, player); // ADD THIS LINE
+    lighting.setDarknessOpacity(0.0);
 
-    // Setup UI elements
+    // setup UI elements
     fpsText = new PIXI.Text({text: "FPS: 0", style: {fontFamily: 'Arial', fontSize: 16, fill: 0xffffff }});
     fpsText.position.set(10, 10);
     fpsText.zIndex = 2000; // Ensure UI is on top
@@ -122,13 +131,23 @@ async function startGame(level) {
     app.stage.addChild(homeButton);
     app.stage.addChild(restartButton);
 
+    // Re-create minimap if needed
+    if (minimap) minimap.destroy(); // Destroy old one first
+    minimap = new Minimap(app, player, enemies, activeLevel, {
+        size: 180,
+        padding: 15,
+        viewRadius: 2000,
+        showingEnemies: true,
+        viewable: true
+    });
+
     createHealthBar(worldContainer);
     player.initializeGraphics(worldContainer);
     player.cannons = []; // Clear old cannons if any
     player.cannons.push(new DefaultCannon(worldContainer));
 
     activeLevel.number = level; // Set the active level number
-    await configureLevel(activeLevel.number, player, worldContainer); // Load level data
+    await configureLevel(activeLevel.number, player, worldContainer, lighting); // Load level data, passing lighting object
 
     // Get wave data AFTER configuring level
     currentWaves = getWaveData(activeLevel.number, worldContainer);
@@ -140,14 +159,6 @@ async function startGame(level) {
         return;
     }
     currentWaves.reset(); // Ensure waves are reset
-
-    // Re-create minimap if needed
-    if (minimap) minimap.destroy(); // Destroy old one first
-    minimap = new Minimap(app, player, enemies, activeLevel, {
-        size: 180,
-        padding: 15,
-        viewRadius: 2000
-    });
 
     // Setup button interactions
     homeButton.off('pointerdown'); // Remove previous listener if any
@@ -184,7 +195,6 @@ async function startGame(level) {
 }
 
 function stopGameLogic(keepAppRunning = false) {
-    console.log("Stopping game logic...");
     gameRunning = false;
     paused = true; // Ensure it's paused
     app.ticker.remove(gameLoop);
@@ -195,6 +205,10 @@ function stopGameLogic(keepAppRunning = false) {
     if (homeButton) app.stage.removeChild(homeButton);
     if (restartButton) app.stage.removeChild(restartButton);
     if (minimap) minimap.destroy();
+    if (lighting) { // ADD THIS BLOCK
+        lighting.destroy();
+        lighting = null;
+    }
 
     // Destroy joystick elements if they exist
     destroyMobileControls();
@@ -284,6 +298,8 @@ const gameLoop = (ticker) => {
             player.update(mouseX, mouseY, mouseDown, deltaTime);
         }
     
+        if (lighting) lighting.update(); // ADD THIS LINE
+    
         for (let i = bullets.length - 1; i >= 0; i--) { 
             bullets[i].update(deltaTime, worldContainer);
         }
@@ -301,6 +317,10 @@ const gameLoop = (ticker) => {
         if (minimap && minimapEnabled) {
             minimap.update();
         }
+
+        backgroundGraphics.clear();
+        backgroundGraphics.rect(-worldContainer.x, -worldContainer.y, window.innerWidth, window.innerHeight);
+        backgroundGraphics.fill(backgroundColor);
     
         drawHealthBar(worldContainer, deltaTime);
         currentWaves.update(deltaTime, enemies);
@@ -336,9 +356,9 @@ function handleKeyDown(event) {
 
                 destroyAllEnemies();
                 stopAllMusic();
-                playMusic('music_main', true, 0.2);
+                playMusic(pickSong(activeLevel.theme, activeLevel.number), true, 0.2);
 
-                configureLevel(activeLevel.number, player, worldContainer);
+                configureLevel(activeLevel.number, player, worldContainer, lighting);
                 if (currentWaves) currentWaves.reset();
                 restartButton.visible = false;
             }
@@ -427,6 +447,13 @@ function destroyAllEnemies() {
     }
 }
 
+function setBackgroundColor(color) {
+    backgroundColor = color;
+    backgroundGraphics.clear();
+    backgroundGraphics.rect(-worldContainer.x, -worldContainer.y, window.innerWidth, window.innerHeight);
+    backgroundGraphics.fill(backgroundColor);  
+}
+
 function destroyMobileControls() {
     if (moveJoystick) moveJoystick.destroy();
     if (aimJoystick) aimJoystick.destroy();
@@ -479,7 +506,6 @@ function setupMobileControls() {
     aimJoystick = nipplejs.create(joystickOptionsRight);
 
     const startMusicOnInteraction = () => {
-        console.log("Joystick interaction detected, attempting audio unlock.");
         attemptAudioUnlock();
 
         moveJoystick.off('start', startMusicOnInteraction);
@@ -557,9 +583,8 @@ function repositionJoysticks() {
 function attemptAudioUnlock() {
     if (audioContextUnlocked) {
         if (!musicStarted) {
-            const musicInstance = playMusic('music_main', true, 0.2);
+            const musicInstance = playMusic(pickSong(activeLevel.theme, activeLevel.number), true, 0.2);
             if (musicInstance && musicInstance.playState !== 'playFailed') {
-                console.log("Main music started successfully after context unlock.");
                 musicStarted = true;
             } else if (musicInstance && musicInstance.playState === 'playFailed') {
                  console.warn("Audio context unlocked, but main music failed to play.");
@@ -567,12 +592,10 @@ function attemptAudioUnlock() {
         }
         return;
     }
-
-    console.log("Attempting to unlock audio context and play music");
-    const musicInstance = playMusic('music_main', true, 0.2);
+    
+    const musicInstance = playMusic(pickSong(activeLevel.theme, activeLevel.number), true, 0.2);
 
     if (musicInstance && musicInstance.playState !== 'playFailed') {
-        console.log("Audio context unlocked and music started successfully!");
         audioContextUnlocked = true;
         musicStarted = true;
         
@@ -589,8 +612,11 @@ function attemptAudioUnlock() {
 
 function gameCompleted() {
     if (typeof closeGame === 'function') {
-        alert("Well Done!");
-        closeGame();
+        setTimeout(() => {
+            alert("Well Done!");
+            beatLevel(activeLevel.number);
+            closeGame();
+        }, 1000);
     }
 }
 

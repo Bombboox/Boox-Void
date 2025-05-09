@@ -2,7 +2,8 @@ var activeLevel = {
     number: 1,
     objects: [], // Original objects from JSON
     shapes: [],  // Filtered shapes (Rectangles, Circles)
-    points: []   // Filtered points (for spawn points, waypoints, etc.)
+    points: [],  // Filtered points (for spawn points, waypoints, etc.)
+    lights: []   // Filtered light objects
 };
 
 // Container for level graphics, added to worldContainer
@@ -19,19 +20,21 @@ async function loadLevel(levelNumber) {
 
         if (!levelData || !Array.isArray(levelData.objects)) {
             console.error("Invalid level data format: 'objects' array not found.");
-            activeLevel = { objects: [], shapes: [], points: [] };
+            activeLevel = { objects: [], shapes: [], points: [], lights: [], theme: ""};
             return false; // Indicate failure
         }
 
         activeLevel.objects = levelData.objects;
         activeLevel.shapes = levelData.objects.filter(obj => obj.type === 'Rectangle' || obj.type === 'Circle');
         activeLevel.points = levelData.objects.filter(obj => obj.type === 'Point');
-        
+        activeLevel.lights = levelData.objects.filter(obj => obj.type === 'Light');
+        activeLevel.theme = levelData.theme ? levelData.theme : "happy";
+
         return true; // Indicate success
 
     } catch (error) {
         console.error("Error loading level:", error);
-        activeLevel = { objects: [], shapes: [], points: [] };
+        activeLevel = { objects: [], shapes: [], points: [], lights: [] };
         return false; // Indicate failure
     }
 }
@@ -86,7 +89,7 @@ function createLevelGraphics(level, container) {
     }
 }
 
-async function configureLevel(levelPath, player, worldContainer) { // Added async and worldContainer
+async function configureLevel(levelPath, player, worldContainer, lighting) { // Added lighting parameter
     try {
         const loaded = await loadLevel(levelPath); // Added await
         if (!loaded) {
@@ -108,6 +111,34 @@ async function configureLevel(levelPath, player, worldContainer) { // Added asyn
             } else {
                 console.warn("No spawn point found in level");
             }
+        }
+
+        // Configure lights from the level data
+        if (lighting && activeLevel.lights) {
+            activeLevel.lights.forEach(lightObj => {
+                const colorString = lightObj.color || '#FFFF00'; 
+                let pixiColor = 0xFFFF00;
+                let alpha = 1.0; 
+
+                if (colorString.startsWith('rgba')) {
+                    const rgba = colorString.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+                    if (rgba) {
+                        const r = parseInt(rgba[1]);
+                        const g = parseInt(rgba[2]);
+                        const b = parseInt(rgba[3]);
+                        pixiColor = (r << 16) | (g << 8) | b;
+                        alpha = parseFloat(rgba[4]);                     
+                    } else {
+                        pixiColor = 0xFFFF00; s
+                    }
+                } else if (colorString.startsWith('#')) {
+                    pixiColor = parseInt(colorString.replace("#", ""), 16);
+                }
+
+                const lightScale = (lightObj.radius || 50) / 32; 
+
+                lighting.addLight(lightObj.x, lightObj.y, pixiColor, lightScale);
+            });
         }
 
         for(let i = 0; i < activeLevel.points.length; i++) {
@@ -133,6 +164,12 @@ async function configureLevel(levelPath, player, worldContainer) { // Added asyn
                     break;
                 case "espawn3":
                     enemies.push(new ToxicGreenSpawner(point.x, point.y));
+                    break;
+                case "espawn4":
+                    enemies.push(new ShriekerSpawner(point.x, point.y));
+                    break;
+                case "espawn5":
+                    enemies.push(new GhostSpawner(point.x, point.y));
                     break;
                 case "bspawn":
                     enemies.push(new DefaultBossSpawner(point.x, point.y));

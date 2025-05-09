@@ -102,6 +102,7 @@ function randomTargetTowardsPlayer(position, radius) {
     return vector(position.x + distance * Math.cos(finalAngle), position.y + distance * Math.sin(finalAngle));
 }
 
+
 function clamp(value, min, max) {
     return Math.max(min, Math.min(value, max));
 }

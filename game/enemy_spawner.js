@@ -95,3 +95,15 @@ class ToxicGreenSpawner extends EnemySpawner {
         super({ x, y, enemy_type: ToxicGreen, spawn_rate: 5000, spawn_radius: 0 });
     }
 }
+
+class ShriekerSpawner extends EnemySpawner {
+    constructor(x, y) {
+        super({ x, y, enemy_type: Shrieker, spawn_rate: 3500, spawn_radius: 0 });
+    }
+}
+
+class GhostSpawner extends EnemySpawner {
+    constructor(x, y) {
+        super({ x, y, enemy_type: Ghost, spawn_rate: 5000, spawn_radius: 0 });
+    }
+}

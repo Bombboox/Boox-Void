@@ -17,6 +17,12 @@ class Player {
         this.healthBarInterval = 5000;
         this.healthBarTimer = 0;
         this.hbtype = "circle";
+        this.camera = new Camera({
+            owner: this,
+            worldContainer: worldContainer,
+            followMode: 'instant',
+            interpolationSpeed: 0.1
+        });
         
         // Invincibility frames
         this.invincible = false;
@@ -66,6 +72,8 @@ class Player {
             return;
         }
 
+        this.camera.update(deltaTime);
+
         // Update invincibility
         if (this.invincible) {
             this.invincibilityTimer -= deltaTime;
@@ -84,39 +92,18 @@ class Player {
             }
         }
 
-        let cameraTarget = this.getCameraClamped();
-
-        if(this.cameraLerping) {
-            const lerpFactor = deltaTime / 100;
-            worldContainer.x = lerp(worldContainer.x, cameraTarget.x, lerpFactor);
-            worldContainer.y = lerp(worldContainer.y, cameraTarget.y, lerpFactor);
-            
-            // Check if camera is close enough to player to stop lerping
-            const distanceX = Math.abs(worldContainer.x - cameraTarget.x);
-            const distanceY = Math.abs(worldContainer.y - cameraTarget.y);
-            if (distanceX < 5 && distanceY < 5) {
-                this.cameraLerping = false;
-                this.cameraFollow = true;
-            }
-        }
-
         this.graphics.position.set(this.position.x, this.position.y);
 
         for(let i = 0; i < this.cannons.length; i++) {
             const cannon = this.cannons[i];
 
-            const offset = this.radius + 10; 
+            const offset = this.radius+3; 
             const cannonX = offset * Math.cos(this.angle);
             const cannonY = offset * Math.sin(this.angle);
 
             cannon.graphics.position.set(this.position.x + cannonX, this.position.y + cannonY);
             cannon.graphics.rotation = this.angle;
             cannon.update(deltaTime); 
-        }
-
-        if(this.cameraFollow) {
-            worldContainer.x = cameraTarget.x;
-            worldContainer.y = cameraTarget.y;
         }
 
         const worldMouseX = (mouseX - worldContainer.x);
@@ -181,22 +168,6 @@ class Player {
         }
     }
 
-    lerpCameraBack() {
-        this.cameraLerping = true;
-    }
-
-    getCameraClamped() {
-        let x = app.screen.width / 2 - player.position.x * worldContainer.scale.x;
-        let y = app.screen.height / 2 - player.position.y * worldContainer.scale.y;
-
-        const minContainerX = app.screen.width - worldRightBoundary * worldContainer.scale.x;
-        const maxContainerX = -worldLeftBoundary * worldContainer.scale.x;
-        const minContainerY = app.screen.height - worldBottomBoundary * worldContainer.scale.y;
-        const maxContainerY = -worldTopBoundary * worldContainer.scale.y;
-
-        return vector(clamp(x, minContainerX, maxContainerX), clamp(y, minContainerY, maxContainerY));
-    }
-    
     checkEnemyCollision() {
         if (!this.alive || this.invincible) return;
         
@@ -206,11 +177,24 @@ class Player {
         };
         
         for (const enemy of enemies) {
-            const enemyCollider = {
-                position: vector(enemy.position.x, enemy.position.y),
-                width: enemy.width,
-                height: enemy.height
-            };
+            let enemyCollider;
+            
+            switch (enemy.hbtype) {
+                case "circle":
+                    enemyCollider = {
+                        position: vector(enemy.position.x, enemy.position.y),
+                        radius: enemy.radius
+                    };
+                    break;
+                case "rectangle":
+                default:
+                    enemyCollider = {
+                        position: vector(enemy.position.x, enemy.position.y),
+                        width: enemy.width,
+                        height: enemy.height
+                    };
+                    break;
+            }
             
             if (checkCollision(playerCollider, enemyCollider)) {
                 this.takeDamage(enemy.dmg);

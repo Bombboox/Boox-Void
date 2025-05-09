@@ -39,6 +39,14 @@ class Waves {
         // Track enemies for the counter
         this.totalEnemiesInWave = 0;
         this.remainingEnemies = 0;
+
+        // Special instructions for the level
+        this.special_instructions = special_instructions;
+        
+        // Run any initial special instructions
+        if (this.special_instructions.onStart) {
+            this.special_instructions.onStart();
+        }
     }
     
     createTextElements() {
@@ -294,6 +302,10 @@ class Wave {
     }
 
     spawn_wave(enemies) {
+        if(this.special_instructions) {
+            this.special_instructions();
+        }
+
         let enemy_spawners = enemies.filter(enemy => enemy instanceof EnemySpawner || Object.getPrototypeOf(enemy.constructor).name === 'EnemySpawner');
         
         if (Object.keys(this.enemyTypes).length === 0) {
@@ -324,10 +336,6 @@ class Wave {
             } else {
                 spawner.spawns_remaining = 0;
             }
-        }
-
-        if(this.special_instructions) {
-            this.special_instructions();
         }
     }
     

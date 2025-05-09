@@ -17,7 +17,7 @@ const WAVE_DATA = {
             },
             special_instructions: () => {
                 stopAllMusic();
-                playMusic('music_boss', true, 0.25);
+                playMusic('boss_1', true, 0.25);
             }
         }
     ],
@@ -78,7 +78,7 @@ const WAVE_DATA = {
                 hp_scale: 3,
                 speed_scale: 0.5,
                 size_scale: 2.5,
-            }
+            },
         },
         {
             enemies: {
@@ -106,7 +106,46 @@ const WAVE_DATA = {
                 EnemySpawner.setSpawnRateForType(MiniBlue, 500);
             }
         },
+    ],
+
+    5: [
+        {
+            enemies: {
+                "DefaultEnemy": 1,
+            },
+        },
+        {
+            enemies: {
+                "Shrieker": 1,
+                "DefaultEnemy": 1,
+            },
+        },
+        {
+            enemies: {
+                "Ghost": 1,
+                "ToxicGreen": 1,
+            },
+            
+        },
+        {
+            enemies: {
+                "Shrieker": 2,
+                "Ghost": 1,
+                "ToxicGreen": 1,
+            },
+            
+        }
     ]
+};
+
+WAVE_DATA.level_instructions = {
+    5: {
+        onStart: () => {
+            lighting.setDarknessOpacity(0.99);
+            stopAndPlayMusic('creepy_3', true, 0.2);
+            minimap.viewable = false;
+        }
+    }
 };
 
 function getWaveData(level, worldContainer) {
@@ -116,7 +155,7 @@ function getWaveData(level, worldContainer) {
     }
     
     const waveConfigs = WAVE_DATA[level];
-    const waves = waveConfigs.map(config => {
+    const waves = waveConfigs.filter(item => !Array.isArray(item)).map(config => {
         return new Wave(
             config.options || {},  
             config.enemies,
@@ -124,5 +163,8 @@ function getWaveData(level, worldContainer) {
         );
     });
     
-    return new Waves(worldContainer, waves);
+    // Get level-specific special instructions if they exist
+    const special_instructions = WAVE_DATA.level_instructions[level] || {};
+
+    return new Waves(worldContainer, waves, special_instructions);
 }

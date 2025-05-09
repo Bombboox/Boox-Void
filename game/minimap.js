@@ -15,6 +15,8 @@ class Minimap {
         this.playerColor = options.playerColor || 0x00ff00; // Green
         this.enemyColor = options.enemyColor || 0xff0000; // Red
         this.levelColor = options.levelColor || 0xaaaaaa; // Grey
+        this.showingEnemies = options.showingEnemies || true;
+        this.viewable = options.viewable || true;
 
         this.container = new PIXI.Container();
         this.graphics = new PIXI.Graphics();
@@ -60,6 +62,28 @@ class Minimap {
 
     update() {  
         this.graphics.clear();
+
+        if (!this.viewable) {
+            // Draw background and border
+            this.graphics.fill({color: this.bgColor, alpha: this.bgAlpha});
+            this.graphics.rect(0, 0, this.size, this.size);
+            this.graphics.stroke({color: this.borderColor, width: this.borderWidth});
+            
+            // Draw exclamation point
+            const centerX = this.size / 2;
+            const centerY = this.size / 2;
+            
+            // Draw exclamation mark dot
+            this.graphics.setStrokeStyle({width: 0});
+            this.graphics.circle(centerX, centerY + 30, 9);
+            this.graphics.fill({color: 0xffff00});
+            
+            // Draw exclamation mark line
+            this.graphics.rect(centerX - 6, centerY - 45, 12, 60);
+            this.graphics.fill({color: 0xffff00});
+            
+            return;
+        }
 
         // Draw background and border
         this.graphics.fill({color: this.bgColor, alpha: this.bgAlpha});
@@ -128,20 +152,22 @@ class Minimap {
         }
 
         // Draw enemies
-        this.graphics.setStrokeStyle({width: 0}); // No border for dots
-        for (let i = 0; i < this.enemies.length; i++) {
-            const enemy = this.enemies[i];
-            // Skip enemy spawners, only render regular enemies
-            if (!enemy || !enemy.position || enemy instanceof EnemySpawner) continue;
-            
-            const dx = enemy.position.x - this.player.position.x;
-            const dy = enemy.position.y - this.player.position.y;
-            if (Math.sqrt(dx*dx + dy*dy) <= this.viewRadius) {
-                const mapPos = this.worldToMinimap(enemy.position.x, enemy.position.y);
-                this.graphics.circle(mapPos.x, mapPos.y, 2); // Draw enemy as a small circle
+        if(this.showingEnemies) {
+            this.graphics.setStrokeStyle({width: 0}); // No border for dots
+                for (let i = 0; i < this.enemies.length; i++) {
+                const enemy = this.enemies[i];
+                // Skip enemy spawners, only render regular enemies
+                if (!enemy || !enemy.position || enemy instanceof EnemySpawner) continue;
+                
+                const dx = enemy.position.x - this.player.position.x;
+                const dy = enemy.position.y - this.player.position.y;
+                if (Math.sqrt(dx*dx + dy*dy) <= this.viewRadius) {
+                    const mapPos = this.worldToMinimap(enemy.position.x, enemy.position.y);
+                    this.graphics.circle(mapPos.x, mapPos.y, 2); // Draw enemy as a small circle
+                }
             }
+            this.graphics.fill({color: this.enemyColor});
         }
-        this.graphics.fill({color: this.enemyColor});
 
         // Draw player (always in the center)
         this.graphics.setStrokeStyle({width: 0});

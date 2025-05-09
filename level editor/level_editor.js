@@ -28,6 +28,7 @@ let actionHistory = []; // Array to store state history for undo
 let historyIndex = -1; // Pointer to current state in history
 const GRID_SIZE = 50; // Base grid size constant
 let enemyTags = {}; // To store loaded enemy tags
+const LIGHT_EMOJI = '💡';
 
 // New global variables for group resizing
 let isGroupResizing = false;
@@ -167,6 +168,30 @@ function drawObjects() {
             ctx.font = '12px Arial';
             ctx.textAlign = 'center';
             ctx.fillText(obj.tag || '', obj.x, obj.y - 10);
+        } else if (obj.type === 'Light') {
+            // Draw light radius (semi-transparent circle)
+            if (obj.radius > 0) {
+                ctx.beginPath();
+                ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+                const lightFillColor = obj.color || 'rgba(255, 255, 0, 0.3)'; // Default light yellow, semi-transparent
+                ctx.fillStyle = lightFillColor;
+                ctx.fill();
+            }
+
+            // Draw lightbulb emoji
+            ctx.font = `${20 / zoomLevel}px Arial`; // Adjust emoji size with zoom
+            ctx.fillStyle = 'white'; // Emoji color
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(LIGHT_EMOJI, obj.x, obj.y);
+
+            // Draw tag if it exists
+            if (obj.tag) {
+                ctx.fillStyle = 'white';
+                ctx.font = `${12 / zoomLevel}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.fillText(obj.tag, obj.x, obj.y - (15 / zoomLevel) - (obj.radius > 0 ? obj.radius : 0) ); // Position tag above emoji/radius
+            }
         }
 
         // Highlight selected objects
@@ -356,6 +381,11 @@ function isPointInObject(point, obj) {
         const dx = point.x - obj.x;
         const dy = point.y - obj.y;
         return Math.sqrt(dx * dx + dy * dy) <= 8; // 8px hit area for points
+    } else if (obj.type === 'Light') {
+        const dx = point.x - obj.x;
+        const dy = point.y - obj.y;
+        // Hit area for light emoji, roughly 10px around its center, adjust as needed
+        return Math.sqrt(dx * dx + dy * dy) <= 10 / zoomLevel; 
     }
     return false;
 }
@@ -512,6 +542,8 @@ function handleMouseDown(e) {
                 newObj = { type: 'Circle', x: snappedX, y: snappedY, radius: GRID_SIZE / 2, color: 'green', tag: '' };
             } else if (currentObjectType === 'Point') {
                 newObj = { type: 'Point', x: snappedX, y: snappedY, tag: '', color: 'red' };
+            } else if (currentObjectType === 'Light') {
+                newObj = { type: 'Light', x: snappedX, y: snappedY, radius: GRID_SIZE, color: 'rgba(255, 255, 0, 0.5)', tag: '' };
             }
             if (newObj) {
                 objects.push(newObj);
@@ -851,7 +883,7 @@ function handleMouseMove(e) {
             }
             
             // Update object position
-            if (obj.type === 'Rectangle' || obj.type === 'Circle' || obj.type === 'Point') {
+            if (obj.type === 'Rectangle' || obj.type === 'Circle' || obj.type === 'Point' || obj.type === 'Light') {
                 obj.x = targetX;
                 obj.y = targetY;
             }
@@ -1331,7 +1363,7 @@ function updatePropertiesPanel() {
 
 // Helper functions for color conversion
 function rgbaToHex(rgba) {
-    const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)/);
+    const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(?:\d*(?:\.\d+)?))?\)/);
     if (!match) return '#000000';
     
     const r = parseInt(match[1]);
@@ -1648,6 +1680,12 @@ function getGroupBoundingBox(objectsArray) {
             objMinY = obj.y;
             objMaxX = obj.x;
             objMaxY = obj.y;
+        } else if (obj.type === 'Light') {
+            // Include lights in bounding box calculation based on their radius
+            objMinX = obj.x - obj.radius;
+            objMinY = obj.y - obj.radius;
+            objMaxX = obj.x + obj.radius;
+            objMaxY = obj.y + obj.radius;
         } else {
             return null; // Unknown object type
         }

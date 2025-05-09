@@ -18,15 +18,17 @@ var angle = 0;
 var menuActive = true;
 var gameInitialized = false;
 var currentGameLevel = 1;
+var animationFrameId = null;
 
 function main() {
     openPage('menu');
+    resizeCanvas();
     draw();
 }
 
 function draw() {
     if (menuActive) {
-        requestAnimationFrame(draw);
+        animationFrameId = requestAnimationFrame(draw);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -82,6 +84,10 @@ function fire() {
 
 function openGame(level) {
     menuActive = false;
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
     currentGameLevel = level;
     openPage('game');
     pauseContainer.style.display = 'none';
@@ -109,7 +115,10 @@ function closeGame() {
     openPage('menu');
     pauseContainer.style.display = 'none';
     menuActive = true;
-    draw();
+    // Restart the animation loop
+    if (animationFrameId === null) {
+        draw();
+    }
 }
 
 function togglePause() {
@@ -129,8 +138,6 @@ function togglePause() {
 }
 
 function openPage(page) {
-    menuActive = (page === 'menu');
-
     document.getElementById(page).style.display = 'block';
     let pages = document.getElementsByClassName('page');
     for(let i = 0; i < pages.length; i++) {
@@ -138,6 +145,67 @@ function openPage(page) {
             pages[i].style.display = 'none';
         }
     }
+
+    menuActive = (page === 'menu');
+    if (page === 'menu') {
+        draw();
+    } else if (page === 'levels') {
+        updateLevelDisplay();
+    }
+}
+
+function updateLevelDisplay() {
+    if (typeof player_data === 'undefined' || player_data === null) {
+        console.error("Player data is not available.");
+        // Optionally, try to load it again or initialize
+        if (typeof loadPlayerData === 'function') {
+            loadPlayerData();
+            if (typeof player_data === 'undefined' || player_data === null) {
+                 if (typeof initializePlayerData === 'function') initializePlayerData();
+                 else return; // Still no player_data, can't proceed
+            }
+        } else {
+            return; 
+        }
+    }
+
+    const levelsContainer = document.querySelector('.levels_container');
+    if (!levelsContainer) return;
+
+    const levelElements = levelsContainer.querySelectorAll('.level');
+    const maxUnlockedLevel = player_data.level;
+
+    levelElements.forEach(levelElement => {
+        const levelId = levelElement.id; // e.g., "level_1"
+        const levelNumber = parseInt(levelId.split('_')[1]);
+
+        if (levelNumber > maxUnlockedLevel) {
+            levelElement.classList.add('locked');
+            levelElement.onclick = null; // Remove existing click listener
+            // Add a visual indicator if desired, e.g., a lock icon
+            if (!levelElement.querySelector('.lock-indicator')) {
+                const lockIndicator = document.createElement('span');
+                lockIndicator.textContent = '🔒';
+                lockIndicator.className = 'lock-indicator';
+                levelElement.appendChild(lockIndicator);
+            }
+        } else {
+            levelElement.classList.remove('locked');
+            // Restore original onclick or set it if it was removed
+            levelElement.onclick = () => openGame(levelNumber); 
+            const lockIndicator = levelElement.querySelector('.lock-indicator');
+            if (lockIndicator) {
+                levelElement.removeChild(lockIndicator);
+            }
+        }
+    });
+}
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    centerX = canvas.width/2;
+    centerY = canvas.height/2.5;
 }
 
 window.addEventListener('mousemove', function(event) {
@@ -152,12 +220,7 @@ window.addEventListener('mousemove', function(event) {
     angle = Math.atan2(canvasMouseY - centerY, canvasMouseX - centerX);
 });
 
-window.addEventListener('resize', function() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    centerX = canvas.width/2;
-    centerY = canvas.height/2.5;
-});
+window.addEventListener('resize', resizeCanvas);
 
 window.addEventListener('mousedown', function() {
     if (!menuActive) return;
