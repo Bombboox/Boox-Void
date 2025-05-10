@@ -28,7 +28,7 @@
     background-color: rgb(175, 157, 157);
     color: #ffffff;
     font-family: "Press Start 2P", system-ui;
-    font-size: 14px;
+    container-type: inline-size;
     border: none;
     border-radius: 5px;
     padding: 10px 5px;
@@ -44,6 +44,24 @@
     align-items: center;
     letter-spacing: -0.5px;
     word-spacing: -2px;
+}
+
+@container (max-width: 220px) {
+    .menu-button {
+        font-size: 12px;
+    }
+}
+
+@container (min-width: 221px) and (max-width: 300px) {
+    .menu-button {
+        font-size: 14px;
+    }
+}
+
+@container (min-width: 301px) {
+    .menu-button {
+        font-size: 16px;
+    }
 }
 
 .menu-button:active {
@@ -182,6 +200,19 @@
     background-color: #7194D6;
     box-shadow: 0 0.8em #2f4d85;
     color: #000000; 
+    container-type: inline-size;
+}
+
+@container (max-width: 150px) {
+    .buy_button {
+        font-size: 10px;
+    }
+}
+
+@container (min-width: 151px) {
+    .buy_button {
+        font-size: 12px;
+    }
 }
 
 .back_button {
@@ -190,6 +221,19 @@
     left: 10px;
     bottom: 20px;
     z-index: 5;
+    container-type: inline-size;
+}
+
+@container (max-width: 120px) {
+    .back_button {
+        font-size: 10px;
+    }
+}
+
+@container (min-width: 121px) {
+    .back_button {
+        font-size: 12px;
+    }
 }
 
 .buy_button:active {

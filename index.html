@@ -28,7 +28,7 @@
                 <div class="button-container">
                     <button class="menu-button" onclick="openPage('levels')">Play</button>
                     <button class="menu-button" onclick="openPage('shop')">Shop</button>
-                    <button class="menu-button">Cannon</button>
+                    <button class="menu-button" onclick="openPage('cannon')">Cannon</button>
                 </div>
             </div>
         </div>
@@ -69,11 +69,22 @@
             </div>
         </div>
 
+        <div class="page" id="cannon">
+            <div class="container">
+                <button class="menu-button back_button" onclick="openPage('menu')">Back</button>
+                <div class="weapons_container" id="cannon_container">
+                    <!-- Cannons will be dynamically populated here -->
+                </div>
+            </div>
+        </div>
+
         <div class="page" id="game">
             <div id="game-canvas-container"></div>
 
         </div>
     </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script src="jquery.fittext.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
     <script src="https://code.createjs.com/1.0.0/soundjs.min.js"></script>
     <script src="game/sounds.js"></script>
@@ -83,6 +94,7 @@
     <script src="game/armor.js"></script>
     <script src="game/bullet.js"></script>
     <script src="game/cannon.js"></script>
+    <script src="game/damage_number.js"></script>
     <script src="game/enemy.js"></script>
     <script src="game/enemy_spawner.js"></script>
     <script src="game/camera.js"></script>

@@ -1,5 +1,4 @@
 var player_data;
-
 const savedData = localStorage.getItem('player_data');
 
 if (savedData) {
@@ -29,16 +28,41 @@ function initializePlayerData() {
     if (!player_data) {
         player_data = {
             money: 0,
-            level:  1,
-            inventory: ["DefaultCannon"]
+            level: 1,
+            cannons: {
+                "DefaultCannon": {
+                    level: 1,
+                    owned: true
+                }
+            },
+            equippedWeapon: "DefaultCannon"
         };
         savePlayerData();
     }
 }
 
 function addToInventory(item) {
-    player_data.inventory.push(item);
+    if (!player_data.cannons[item]) {
+        player_data.cannons[item] = {
+            level: 1,
+            owned: true
+        };
+    }
     savePlayerData();
+}
+
+function upgradeCannon(cannonType) {
+    if (player_data.cannons[cannonType]) {
+        player_data.cannons[cannonType].level += 1;
+        savePlayerData();
+    }
+}
+
+function getCannonLevel(cannonType) {
+    if (player_data.cannons[cannonType]) {
+        return player_data.cannons[cannonType].level;
+    }
+    return 0;
 }
 
 function addMoney(amount) {

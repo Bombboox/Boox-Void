@@ -95,24 +95,19 @@ class Lighting {
     _initializeLightingContainer() {
         this.lightingContainer = new PIXI.Container();
         this.worldContainer.addChild(this.lightingContainer);
-        this.lightingContainer.blendMode = 'add'; // Changed from 'add' to 'screen' to affect black objects
+        this.lightingContainer.blendMode = 'add'; 
         
-        // Create darkness as a separate entity
         this.darkness = new Darkness(this.worldContainer);
         this.lightingContainer.addChild(this.darkness.container);
         
-        // Apply a composite filter to ensure proper blending with black objects
         const compositeFilter = new PIXI.AlphaFilter();
         compositeFilter.blendMode = 'multiply';
 
         const lightingFilter = new PIXI.ColorMatrixFilter();
-        // This will boost the brightness while preserving colors
         lightingFilter.brightness(1.5, false);
-        // Apply the filter to your world container instead of the lighting container
+
         this.worldContainer.filters = [lightingFilter];
         this.lightingContainer.filters = [compositeFilter];
-
-        
         
         this.lightingContainer.zIndex = 1000; 
         this.lightingContainer.sortableChildren = true; 
@@ -136,7 +131,6 @@ class Lighting {
         return light;
     }
 
-    // Remove a specific light
     removeLight(light) {
         const index = this.lights.indexOf(light);
         if (index !== -1) {
@@ -146,7 +140,6 @@ class Lighting {
         }
     }
 
-    // Update light position
     updateLightPosition(light, x, y) {
         if (light) {
             light.position.set(x, y);
@@ -159,21 +152,18 @@ class Lighting {
         }
     }
 
-    // Update light color
     updateLightColor(light, color) {
         if (light) {
             light.tint = color;
         }
     }
 
-    // Update light radius
     updateLightRadius(light, radius) {
         if (light) {
             light.scale.set(radius);
         }
     }
     
-    // Set darkness opacity
     setDarknessOpacity(opacity) {
         if (this.darkness) {
             this.darkness.setOpacity(opacity);
@@ -186,17 +176,13 @@ class Lighting {
         }
     }
     
-    // Get darkness opacity
     getDarknessOpacity() {
         return this.darkness ? this.darkness.getOpacity() : 0;
     }
 
     update() {
-        // Only update lights if darkness opacity is above 0
         if (this.darkness && this.darkness.getOpacity() > 0) {
             if (this.player && this.player.graphics && this.playerLight) {
-                // Center the player light on the screen, effectively making it seem like the player is the light source
-                // as the camera follows the player.
                 this.updateLightPosition(
                     this.playerLight,
                     this.player.position.x,

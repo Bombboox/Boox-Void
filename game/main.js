@@ -1,37 +1,38 @@
 const app = new PIXI.Application();
 var appInitialized = false;
 var paused = false;
-var gameRunning = false; // New flag to control game loop and input
+var gameRunning = false;
 
 async function initializeApp() {
-    if (appInitialized) return; // Don't re-initialize
+    if (appInitialized) return;
 
     await app.init({
         width: 1920,
         height: 1080,
         resizeTo: window,
-        backgroundColor: 0x000000, // Black background
+        backgroundColor: 0x000000,
         resolution: devicePixelRatio,
         autoDensity: true,
         antialias: true,
     });
-    // Append canvas to the specific container in index.html
     const gameCanvasContainer = document.getElementById('game-canvas-container');
     if (gameCanvasContainer) {
         gameCanvasContainer.appendChild(app.canvas);
     } else {
         console.error("Game canvas container not found!");
-        return; // Stop if container missing
+        return;
     }
     appInitialized = true;
 }
 
 const worldContainer = new PIXI.Container();
-var player = null; // Initialize player later
+var player = null;
 const bullets = [];
 const enemy_bullets = [];
 const enemies = [];
-let lighting = null; // Add this line
+const damage_numbers = [];
+
+let lighting = null;
 
 const gridSize = 50; 
 const gridColor = 0xffffff; 
@@ -58,13 +59,11 @@ var worldRightBoundary = 1000;
 var enemiesPaused = false;
 
 let musicStarted = false;
-let audioContextUnlocked = false; // Flag to track if audio context is unlocked
+let audioContextUnlocked = false;
 
-// Mobile audio unlock overlay
 let audioOverlay = null;
 let audioOverlayText = null;
 
-// UI elements (initialized later)
 var fpsText = null;
 var homeButton = null;
 var restartButton = null;
@@ -72,7 +71,6 @@ var restartButton = null;
 var currentWaves = null;
 var minimap = null;
 
-// Background graphics
 var backgroundGraphics = null;
 var backgroundColor = 0x000000;
 
@@ -88,7 +86,6 @@ async function startGame(level) {
     gameRunning = true;
     paused = false;
 
-    // reset game state
     worldContainer.removeChildren(); 
     bullets.length = 0;
     enemy_bullets.length = 0;
@@ -97,21 +94,19 @@ async function startGame(level) {
     mouseDown = false;
     musicStarted = false; 
 
-    // Create black background
     backgroundGraphics = new PIXI.Graphics();
     backgroundGraphics.rect(worldContainer.x, worldContainer.y, window.innerWidth, window.innerHeight);
     backgroundGraphics.fill(backgroundColor);
-    backgroundGraphics.zIndex = -100; // Ensure it's behind everything
+    backgroundGraphics.zIndex = -100;
     worldContainer.addChild(backgroundGraphics);
 
     player = new Player(0, 0, 20, 0xffffff);
-    lighting = new Lighting(worldContainer, player); // ADD THIS LINE
+    lighting = new Lighting(worldContainer, player);
     lighting.setDarknessOpacity(0.0);
 
-    // setup UI elements
     fpsText = new PIXI.Text({text: "FPS: 0", style: {fontFamily: 'Arial', fontSize: 16, fill: 0xffffff }});
     fpsText.position.set(10, 10);
-    fpsText.zIndex = 2000; // Ensure UI is on top
+    fpsText.zIndex = 2000;
 
     homeButton = new PIXI.Text({text: "BACK", style: {fontFamily: 'Arial', fontSize: 24, fill: 0xffffff }});
     homeButton.position.set(10, 40);
@@ -131,8 +126,7 @@ async function startGame(level) {
     app.stage.addChild(homeButton);
     app.stage.addChild(restartButton);
 
-    // Re-create minimap if needed
-    if (minimap) minimap.destroy(); // Destroy old one first
+    if (minimap) minimap.destroy();
     minimap = new Minimap(app, player, enemies, activeLevel, {
         size: 180,
         padding: 15,
@@ -143,77 +137,77 @@ async function startGame(level) {
 
     createHealthBar(worldContainer);
     player.initializeGraphics(worldContainer);
-    player.cannons = []; // Clear old cannons if any
-    player.cannons.push(new DefaultCannon(worldContainer));
+    player.cannons = [];
+    let equipped = (typeof player_data !== 'undefined' && player_data && player_data.equippedWeapon) ? player_data.equippedWeapon : 'DefaultCannon';
+    const cannonClassMap = {
+        'DefaultCannon': DefaultCannon,
+        'ExplosiveCannon': ExplosiveCannon,
+        'HitscanCannon': HitscanCannon,
+        'DroneCannon': DroneCannon,
+    };
+    let CannonClass = cannonClassMap[equipped] || DefaultCannon;
+    let cannonLevel = (player_data && player_data.cannons && player_data.cannons[equipped]) ? player_data.cannons[equipped].level : 1;
+    player.cannons.push(new CannonClass({ worldContainer: worldContainer, level: cannonLevel }));
+ 
+    activeLevel.number = level;
+    await configureLevel(activeLevel.number, player, worldContainer, lighting);
 
-    activeLevel.number = level; // Set the active level number
-    await configureLevel(activeLevel.number, player, worldContainer, lighting); // Load level data, passing lighting object
-
-    // Get wave data AFTER configuring level
     currentWaves = getWaveData(activeLevel.number, worldContainer);
     if (!currentWaves) {
         console.error("Failed to get wave data for level:", activeLevel.number);
-        // Handle error - maybe stop game or go back to menu
         stopGameLogic();
-        if (typeof closeGame === 'function') closeGame(); // Try to call menu's close function
+        if (typeof closeGame === 'function') closeGame();
         return;
     }
-    currentWaves.reset(); // Ensure waves are reset
+    currentWaves.reset();
 
-    // Setup button interactions
-    homeButton.off('pointerdown'); // Remove previous listener if any
+    homeButton.off('pointerdown');
     homeButton.on('pointerdown', () => {
         stopGameLogic();
         if (typeof closeGame === 'function') {
-            closeGame(); // Call the closeGame function from menu.js
+            closeGame();
         } else {
             console.warn("closeGame function not found in menu script");
         }
     });
 
-    restartButton.off('pointerdown'); // Remove previous listener if any
+    restartButton.off('pointerdown');
     restartButton.on('pointerdown', () => {
         if (!player.alive) {
-            // Restart the current level
             startGame(activeLevel.number);
         }
     });
 
-    // Add ticker AFTER setup is complete
-    app.ticker.remove(gameLoop); // Ensure no duplicate tickers
+    app.ticker.remove(gameLoop);
     app.ticker.add(gameLoop);
 
     if (mobileCheck()) {
         isMobile = true;
-        setupMobileControls(); // Re-setup controls if needed
+        setupMobileControls();
         repositionJoysticks();
-        if (!audioOverlay) createAudioOverlay(); // Recreate overlay if needed
+        if (!audioOverlay) createAudioOverlay();
     }
 
-    // Add global event listeners (ensure they check gameRunning/paused)
     addGlobalEventListeners();
 }
 
 function stopGameLogic(keepAppRunning = false) {
     gameRunning = false;
-    paused = true; // Ensure it's paused
+    paused = true;
     app.ticker.remove(gameLoop);
 
-    // Cleanup: Remove game-specific elements from stage
-    if (worldContainer) worldContainer.removeChildren(); // Clear game world visuals
+    if (worldContainer) worldContainer.removeChildren();
     if (fpsText) app.stage.removeChild(fpsText);
     if (homeButton) app.stage.removeChild(homeButton);
     if (restartButton) app.stage.removeChild(restartButton);
     if (minimap) minimap.destroy();
-    if (lighting) { // ADD THIS BLOCK
+    if (lighting) {
         lighting.destroy();
         lighting = null;
     }
 
-    // Destroy joystick elements if they exist
     destroyMobileControls();
 
-    // Clear arrays
     bullets.length = 0;
     enemy_bullets.length = 0;
     enemies.length = 0;
@@ -229,10 +223,10 @@ function stopGameLogic(keepAppRunning = false) {
     homeButton = null;
     restartButton = null;
 
-    stopAllMusic(); // Stop any playing music
+    stopAllMusic();
     musicStarted = false;
 
-    removeGlobalEventListeners(); // Remove listeners when stopping completely
+    removeGlobalEventListeners();
 }
 
 function pauseGameLogic() {
@@ -286,11 +280,9 @@ const createAudioOverlay = () => {
 }
 
 const gameLoop = (ticker) => {
-    // Only run if the game is active and not paused
     if (gameRunning && !paused) {
         deltaTime = ticker.deltaMS;
 
-        // Update game logic
         if (!isMobile) {
             player.update(mouseX, mouseY, mouseDown, deltaTime);
         } else {
@@ -298,13 +290,12 @@ const gameLoop = (ticker) => {
             player.update(mouseX, mouseY, mouseDown, deltaTime);
         }
     
-        if (lighting) lighting.update(); // ADD THIS LINE
+        if (lighting) lighting.update();
     
         for (let i = bullets.length - 1; i >= 0; i--) { 
             bullets[i].update(deltaTime, worldContainer);
         }
     
-        // Update enemy bullets
         for (let i = enemy_bullets.length - 1; i >= 0; i--) { 
             enemy_bullets[i].update(deltaTime, worldContainer);
         }
@@ -312,8 +303,11 @@ const gameLoop = (ticker) => {
         for (let i = enemies.length - 1; i >= 0; i--) { 
             enemies[i].update(deltaTime, worldContainer); 
         }
+
+        for(let i = damage_numbers.length - 1; i >= 0; i--) {
+            damage_numbers[i].update(deltaTime);
+        }
     
-        // Update the minimap
         if (minimap && minimapEnabled) {
             minimap.update();
         }
@@ -327,7 +321,6 @@ const gameLoop = (ticker) => {
     
         if (fpsText) fpsText.text = `FPS: ${Math.round(app.ticker.FPS)}`;
         
-        // Show restart button if player dies
         if (!player.alive && restartButton && !restartButton.visible) {
             restartButton.visible = true;
         }
@@ -341,7 +334,7 @@ function handleMouseMove(event) {
 }
 
 function handleKeyDown(event) {
-    if (!gameRunning || paused) return; // Don't process if game not active
+    if (!gameRunning || paused) return;
 
     keyboard[event.key] = true;
 
@@ -350,7 +343,7 @@ function handleKeyDown(event) {
             minimapEnabled = !minimapEnabled;
             minimap.graphics.clear();
             break;
-        case "r": // Restart on R only if player dead
+        case "r":
             if(!player.alive) {
                 player.revive();
 
@@ -363,26 +356,25 @@ function handleKeyDown(event) {
                 restartButton.visible = false;
             }
             break;
-        case 'Escape': // Let menu handle Escape for pause
+        case 'Escape':
             if (typeof togglePause === 'function') {
-                togglePause(); // Call menu's toggle function
+                togglePause();
             }
             break;
         default:
-            // Handle other keys if needed
             break;
     }
 }
 
 function handleKeyUp(event) {
-    if (!gameRunning) return; // Ignore if game stopped
+    if (!gameRunning) return;
     keyboard[event.key] = false;
 }
 
 function handleMouseDown() {
     if (!gameRunning || paused) return;
     mouseDown = true;
-    attemptAudioUnlock(); // Try unlocking audio on interaction
+    attemptAudioUnlock();
 }
 
 function handleMouseUp() {
@@ -391,14 +383,13 @@ function handleMouseUp() {
 }
 
 function handleResize() {
-    if (!appInitialized) return; // Don't resize if app not ready
+    if (!appInitialized) return;
     app.renderer.resize(window.innerWidth, window.innerHeight);
     app.renderer.resolution = devicePixelRatio;
 
     if (isMobile) {
         repositionJoysticks();
         
-        // Resize audio overlay if it exists
         if (audioOverlay) {
             audioOverlay.clear();
             audioOverlay.beginFill(0x000000, 0.7);
@@ -409,13 +400,11 @@ function handleResize() {
         }
     }
 
-    // Reposition UI elements if needed based on screen size
     if (fpsText) fpsText.position.set(10, 10);
     if (homeButton) homeButton.position.set(10, 40);
     if (restartButton) restartButton.position.set(10, 80);
 }
 
-// Add/Remove Global Listeners
 function addGlobalEventListeners() {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("keydown", handleKeyDown);
@@ -423,7 +412,6 @@ function addGlobalEventListeners() {
     window.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", handleMouseUp);
     window.addEventListener("resize", handleResize);
-    // Touch events for audio unlock are added separately if needed
 }
 
 function removeGlobalEventListeners() {
@@ -599,7 +587,6 @@ function attemptAudioUnlock() {
         audioContextUnlocked = true;
         musicStarted = true;
         
-        // Remove the overlay if it exists and we're on mobile
         if (isMobile && audioOverlay) {
             app.stage.removeChild(audioOverlay);
             audioOverlay = null;

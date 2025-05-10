@@ -55,12 +55,23 @@ class Enemy {
         throw new Error("renderGraphics() must be implemented by subclass");
     }
 
-    damage(amount) {
+    damage(amount, position = this.position) {
         if (this.invincibilityFrames > 0) {
             return; 
         }
         
         this.hp -= amount;
+        const damageNumber = new DamageNumber({
+            x: position.x,
+            y: position.y,
+            number: amount,
+            color: 0x218ede,
+            font: 'Arial',
+            size: 22,
+            duration: 350,
+            worldContainer: worldContainer
+        });
+
         if(this.hp <= 0) {
             this.destroy(worldContainer);
             return;

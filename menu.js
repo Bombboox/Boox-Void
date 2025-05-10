@@ -24,6 +24,27 @@ function main() {
     openPage('menu');
     resizeCanvas();
     draw();
+
+    // Apply fitText to all menu buttons
+    function applyFitText() {
+        const menuButtons = document.querySelectorAll('.menu-button');
+        menuButtons.forEach(function(button) {
+            jQuery(button).fitText(1.5, {
+                minFontSize: '6px'
+            });
+        });
+    }
+    
+    // Initial application when DOM is loaded
+    document.addEventListener('DOMContentLoaded', applyFitText);
+    
+    // Apply when page changes or buttons are pressed
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('menu-button') || 
+            event.target.closest('.page')) {
+            setTimeout(applyFitText, 10); // Small delay to ensure DOM is updated
+        }
+    });
 }
 
 function draw() {
@@ -82,6 +103,152 @@ function fire() {
     });
 }
 
+function openPage(page) {
+    document.getElementById(page).style.display = 'block';
+    let pages = document.getElementsByClassName('page');
+    for(let i = 0; i < pages.length; i++) {
+        if(pages[i].id !== page) {
+            pages[i].style.display = 'none';
+        }
+    }
+
+    menuActive = (page === 'menu');
+    if (page === 'menu') {
+        draw();
+    } else if (page === 'levels') {
+        updateLevelDisplay();
+    } else if (page === 'cannon') {
+        updateCannonDisplay();
+    }
+}
+
+function updateLevelDisplay() {
+    if (typeof player_data === 'undefined' || player_data === null) {
+        console.error("Player data is not available.");
+        // Optionally, try to load it again or initialize
+        if (typeof loadPlayerData === 'function') {
+            loadPlayerData();
+            if (typeof player_data === 'undefined' || player_data === null) {
+                 if (typeof initializePlayerData === 'function') initializePlayerData();
+                 else return; // Still no player_data, can't proceed
+            }
+        } else {
+            return; 
+        }
+    }
+
+    const levelsContainer = document.querySelector('.levels_container');
+    if (!levelsContainer) return;
+
+    const levelElements = levelsContainer.querySelectorAll('.level');
+    const maxUnlockedLevel = player_data.level;
+
+    levelElements.forEach(levelElement => {
+        const levelId = levelElement.id; // e.g., "level_1"
+        const levelNumber = parseInt(levelId.split('_')[1]);
+
+        if (levelNumber > maxUnlockedLevel) {
+            levelElement.classList.add('locked');
+            levelElement.onclick = null; // Remove existing click listener
+            // Add a visual indicator if desired, e.g., a lock icon
+            if (!levelElement.querySelector('.lock-indicator')) {
+                const lockIndicator = document.createElement('span');
+                lockIndicator.textContent = '🔒';
+                lockIndicator.className = 'lock-indicator';
+                levelElement.appendChild(lockIndicator);
+            }
+        } else {
+            levelElement.classList.remove('locked');
+            // Restore original onclick or set it if it was removed
+            levelElement.onclick = () => openGame(levelNumber); 
+            const lockIndicator = levelElement.querySelector('.lock-indicator');
+            if (lockIndicator) {
+                levelElement.removeChild(lockIndicator);
+            }
+        }
+    });
+}
+
+function updateCannonDisplay() {
+    if (typeof player_data === 'undefined' || player_data === null) {
+        if (typeof loadPlayerData === 'function') loadPlayerData();
+        if (typeof player_data === 'undefined' || player_data === null) {
+            if (typeof initializePlayerData === 'function') initializePlayerData();
+            else return;
+        }
+    }
+    const cannonContainer = document.getElementById('cannon_container');
+    if (!cannonContainer) return;
+    cannonContainer.innerHTML = '';
+
+    // Mapping for display names
+    const cannonDisplayNames = {
+        'DefaultCannon': 'Default',
+        'ExplosiveCannon': 'Explosive',
+        'HitscanCannon': 'Hitscan',
+        'DroneCannon': 'Drone',
+    };
+
+    for (const cannonType in player_data.cannons) {
+        if (!player_data.cannons[cannonType].owned) continue;
+        const cannonData = player_data.cannons[cannonType];
+        const isEquipped = player_data.equippedWeapon === cannonType;
+        const cannonDiv = document.createElement('div');
+        cannonDiv.className = 'weapon';
+
+        const name = document.createElement('h1');
+        name.className = 'weapon_name';
+        name.textContent = cannonDisplayNames[cannonType] || cannonType;
+        cannonDiv.appendChild(name);
+
+        const level = document.createElement('div');
+        level.textContent = 'Level: ' + cannonData.level;
+        level.style.margin = '10px 0 0 15px';
+        cannonDiv.appendChild(level);
+
+        if (isEquipped) {
+            const equippedLabel = document.createElement('div');
+            equippedLabel.textContent = 'Equipped';
+            equippedLabel.style.color = '#4CAF50';
+            equippedLabel.style.margin = '10px 0 0 15px';
+            cannonDiv.appendChild(equippedLabel);
+        } else {
+            const equipBtn = document.createElement('button');
+            equipBtn.className = 'menu-button';
+            equipBtn.textContent = 'Equip';
+            equipBtn.onclick = function() {
+                player_data.equippedWeapon = cannonType;
+                savePlayerData();
+                updateCannonDisplay();
+            };
+            cannonDiv.appendChild(equipBtn);
+        }
+
+        // Upgrade button
+        const upgradeBtn = document.createElement('button');
+        upgradeBtn.className = 'menu-button buy_button';
+        const upgradeCost = getCannonUpgradeCost(cannonData.level);
+        upgradeBtn.textContent = 'Upgrade (' + upgradeCost + ' $)';
+        upgradeBtn.disabled = player_data.money < upgradeCost;
+        upgradeBtn.onclick = function() {
+            if (player_data.money >= upgradeCost) {
+                addMoney(-upgradeCost);
+                player_data.cannons[cannonType].level += 1;
+                savePlayerData();
+                updateCannonDisplay();
+            }
+        };
+        cannonDiv.appendChild(upgradeBtn);
+
+        cannonContainer.appendChild(cannonDiv);
+    }
+}
+
+// Helper for upgrade cost (simple formula, can be adjusted)
+function getCannonUpgradeCost(level) {
+    return 100 * level; // Example: 100, 200, 300, ...
+}
+
 function openGame(level) {
     menuActive = false;
     if (animationFrameId) {
@@ -135,70 +302,6 @@ function togglePause() {
     } else {
         console.warn("Game pause functions not available.");
     }
-}
-
-function openPage(page) {
-    document.getElementById(page).style.display = 'block';
-    let pages = document.getElementsByClassName('page');
-    for(let i = 0; i < pages.length; i++) {
-        if(pages[i].id !== page) {
-            pages[i].style.display = 'none';
-        }
-    }
-
-    menuActive = (page === 'menu');
-    if (page === 'menu') {
-        draw();
-    } else if (page === 'levels') {
-        updateLevelDisplay();
-    }
-}
-
-function updateLevelDisplay() {
-    if (typeof player_data === 'undefined' || player_data === null) {
-        console.error("Player data is not available.");
-        // Optionally, try to load it again or initialize
-        if (typeof loadPlayerData === 'function') {
-            loadPlayerData();
-            if (typeof player_data === 'undefined' || player_data === null) {
-                 if (typeof initializePlayerData === 'function') initializePlayerData();
-                 else return; // Still no player_data, can't proceed
-            }
-        } else {
-            return; 
-        }
-    }
-
-    const levelsContainer = document.querySelector('.levels_container');
-    if (!levelsContainer) return;
-
-    const levelElements = levelsContainer.querySelectorAll('.level');
-    const maxUnlockedLevel = player_data.level;
-
-    levelElements.forEach(levelElement => {
-        const levelId = levelElement.id; // e.g., "level_1"
-        const levelNumber = parseInt(levelId.split('_')[1]);
-
-        if (levelNumber > maxUnlockedLevel) {
-            levelElement.classList.add('locked');
-            levelElement.onclick = null; // Remove existing click listener
-            // Add a visual indicator if desired, e.g., a lock icon
-            if (!levelElement.querySelector('.lock-indicator')) {
-                const lockIndicator = document.createElement('span');
-                lockIndicator.textContent = '🔒';
-                lockIndicator.className = 'lock-indicator';
-                levelElement.appendChild(lockIndicator);
-            }
-        } else {
-            levelElement.classList.remove('locked');
-            // Restore original onclick or set it if it was removed
-            levelElement.onclick = () => openGame(levelNumber); 
-            const lockIndicator = levelElement.querySelector('.lock-indicator');
-            if (lockIndicator) {
-                levelElement.removeChild(lockIndicator);
-            }
-        }
-    });
 }
 
 function resizeCanvas() {

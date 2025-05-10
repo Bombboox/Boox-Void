@@ -17,6 +17,17 @@ class Cannon {
         this.color = options.color || (this.enemy_cannon ? 0x5CBDEA : 0xffffff); // Default enemy cannon blue, player white
         this.bullet_color = options.color || 0xffffff; 
 
+        this.level = options.level || 1;
+        
+        if(!options.level_multipliers) options.level_multipliers = {};
+        this.level_multipliers = {
+            damage: options.level_multipliers.damage || 0.5,
+            speed: options.level_multipliers.speed || 0.005,
+            pierce: options.level_multipliers.pierce || 0.05,
+            rate: options.level_multipliers.rate || 0.99,
+            size: options.level_multipliers.size || 0.001,
+        }
+
         this.graphics = new PIXI.Graphics();
         if (this.worldContainer) {
             this.worldContainer.addChild(this.graphics);
@@ -56,14 +67,14 @@ class Cannon {
             const actualFiringOriginY = firingPointPosition.y + (this.cannonLength / 2) * Math.sin(angle);
 
 
-            this.cooldown = this.fireRate;
+            this.cooldown = this.fireRate * Math.pow(this.level_multipliers.rate, this.level);
             const bulletOptions = {
                 x: actualFiringOriginX,
                 y: actualFiringOriginY,
-                damage: this.damage,
-                speed: this.bulletSpeed,
-                pierce: this.bulletPierce,
-                radius: this.bulletSize,
+                damage: getLinearStat(this.damage, this.level_multipliers.damage, this.level),
+                speed: getLinearStat(this.bulletSpeed, this.level_multipliers.speed, this.level),
+                pierce: getLinearStat(this.bulletPierce, this.level_multipliers.pierce, this.level),
+                radius: getLinearStat(this.bulletSize, this.level_multipliers.size, this.level),
                 angle: angle,
                 worldContainer: this.worldContainer,
                 enemy_bullet: this.enemy_cannon, // Key change: bullets from enemy cannons are enemy_bullets
@@ -73,18 +84,18 @@ class Cannon {
             const bullet = new this.bulletType(bulletOptions);
 
             if (this.enemy_cannon) {
-                if (typeof enemy_bullets !== 'undefined') { // Ensure enemy_bullets array exists
+                if (typeof enemy_bullets !== 'undefined') {
                     enemy_bullets.push(bullet);
                 } else {
                     console.warn("enemy_bullets array not found for enemy cannon to fire into.");
                 }
             }
-            return bullet; // Player cannons return bullet to be added to player's bullet array
+            return bullet; 
         }
         return null;
     }
 
-    destroy() { // Removed worldContainer from params, should use this.worldContainer
+    destroy() { 
         if (this.graphics && this.worldContainer) {
             this.worldContainer.removeChild(this.graphics);
             this.graphics.destroy();
@@ -105,9 +116,10 @@ class DefaultCannon extends Cannon {
             cannonLength: options.cannonLength || 25,
             cannonWidth: options.cannonWidth || 10,
             worldContainer: options.worldContainer || worldContainer,
-            owner: options.owner, // Pass the owner (e.g., player or enemy entity)
+            owner: options.owner,
             enemy_cannon: options.enemy_cannon,
-            color: options.color || (options.enemy_cannon ? 0x5CBDEA : 0xffffff) // Specific color for enemy default cannon
+            color: options.color || (options.enemy_cannon ? 0x5CBDEA : 0xffffff),
+            ...options // Pass through any additional options
         });
     }
 }
@@ -115,18 +127,19 @@ class DefaultCannon extends Cannon {
 class ExplosiveCannon extends Cannon {
     constructor(options = {}) {
         super({
-            damage: options.damage || 2,
+            damage: options.damage || 3,
             bulletType: options.bulletType || ExplosiveBullet,
             bulletSpeed: options.bulletSpeed || 0.5,
-            bulletPierce: options.bulletPierce || 1, // Explosive bullets typically don't pierce in the traditional sense
-            bulletSize: options.bulletSize || 10, // Radius of the bullet itself, explosion radius is handled by ExplosiveBullet
-            fireRate: options.fireRate || 500, // Slower fire rate for explosive?
+            bulletPierce: options.bulletPierce || 1, 
+            bulletSize: options.bulletSize || 10, 
+            fireRate: options.fireRate || 750, 
             cannonLength: options.cannonLength || 15,
             cannonWidth: options.cannonWidth || 20,
             worldContainer: options.worldContainer || worldContainer,
             owner: options.owner,
             enemy_cannon: options.enemy_cannon,
-            color: options.color || (options.enemy_cannon ? 0xFF6347 : 0x808080) // Tomato for enemy explosive, Gray for player
+            color: options.color || (options.enemy_cannon ? 0xFF6347 : 0x808080),
+            ...options // Pass through any additional options
         });
     }
 }
@@ -145,7 +158,8 @@ class HitscanCannon extends Cannon {
             worldContainer: options.worldContainer || worldContainer,
             owner: options.owner,
             enemy_cannon: options.enemy_cannon,
-            color: options.color || (options.enemy_cannon ? 0xFF6347 : 0xFFA500)
+            color: options.color || (options.enemy_cannon ? 0xFF6347 : 0xFFA500),
+            ...options // Pass through any additional options
         });
     }
 }
@@ -164,7 +178,8 @@ class DroneCannon extends Cannon {
             worldContainer: options.worldContainer || worldContainer,
             owner: options.owner,
             enemy_cannon: options.enemy_cannon,
-            color: options.color || (options.enemy_cannon ? 0xFF6347 : 0x89CFF0) // Baby blue color for player drone
+            color: options.color || (options.enemy_cannon ? 0xFF6347 : 0x89CFF0),
+            ...options // Pass through any additional options
         });
     }
 }

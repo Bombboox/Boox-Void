@@ -102,6 +102,9 @@ function randomTargetTowardsPlayer(position, radius) {
     return vector(position.x + distance * Math.cos(finalAngle), position.y + distance * Math.sin(finalAngle));
 }
 
+function getLinearStat(base, multiplier, level) {
+    return base * (1 + (multiplier) * (level - 1));
+}
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(value, max));
