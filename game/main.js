@@ -597,12 +597,21 @@ function attemptAudioUnlock() {
     }
 }
 
+function beatLevel(level_number) {
+    const money = Math.floor(50 + level_number * 20 * random(1,2));
+    addMoney(money);
+    if (typeof closeGame === 'function') {
+        setTimeout(() => {
+            alert(`Well Done! You earned ${money} gold!`);
+            closeGame();
+        }, 1000);
+    }
+}
+
 function gameCompleted() {
     if (typeof closeGame === 'function') {
         setTimeout(() => {
-            alert("Well Done!");
             beatLevel(activeLevel.number);
-            closeGame();
         }, 1000);
     }
 }

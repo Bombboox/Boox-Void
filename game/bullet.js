@@ -12,6 +12,7 @@ class Bullet {
         this.color = options.color || 0xff0000; // Default enemy bullet color to red
         this.hbtype = options.hbtype || "circle";
         this.enemy_bullet = options.enemy_bullet || false; // New option
+        this.crit_roll = options.crit_roll || false;
 
         if (!this.worldContainer) {
             console.error("Bullet created without worldContainer!");
@@ -81,7 +82,7 @@ class Bullet {
     }
 
     hit(enemy) {
-        enemy.damage(this.damage);
+        enemy.damage(this.damage, this.position, this.crit_roll);
         this.pierce--;
         if(this.pierce <= 0) {
             this.destroy();
@@ -171,7 +172,7 @@ class ExplosiveBullet extends Bullet {
     }
 
     hit(enemy) {
-        enemy.damage(this.damage);
+        super.hit(this.damage);
         this.explode();
         this.destroy();
     }

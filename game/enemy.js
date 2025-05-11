@@ -55,7 +55,7 @@ class Enemy {
         throw new Error("renderGraphics() must be implemented by subclass");
     }
 
-    damage(amount, position = this.position) {
+    damage(amount, position = this.position, crit_roll = false) {
         if (this.invincibilityFrames > 0) {
             return; 
         }
@@ -65,9 +65,10 @@ class Enemy {
             x: position.x,
             y: position.y,
             number: amount,
-            color: 0x218ede,
-            font: 'Arial',
-            size: 22,
+            color: crit_roll ? 0xff0000 : 0x218ede,
+            font: 'Roboto',
+            size: crit_roll ? 32 : 22,
+            fontWeight: crit_roll ? 'bold' : 'normal',
             duration: 350,
             worldContainer: worldContainer
         });

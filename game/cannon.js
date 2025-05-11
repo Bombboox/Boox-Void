@@ -1,6 +1,9 @@
 class Cannon {
     constructor(options = {}) {
         this.damage = options.damage || 1;
+        this.crit_chance = options.crit_chance || 0.05;
+        this.crit_damage = options.crit_damage || 2;
+
         this.bulletType = options.bulletType || DefaultBullet;
         this.bulletSpeed = options.bulletSpeed || 0.5;
         this.bulletPierce = options.bulletPierce || 1;
@@ -66,19 +69,28 @@ class Cannon {
             const actualFiringOriginX = firingPointPosition.x + (this.cannonLength / 2) * Math.cos(angle);
             const actualFiringOriginY = firingPointPosition.y + (this.cannonLength / 2) * Math.sin(angle);
 
+          
+            let damage = getLinearStat(this.damage, this.level_multipliers.damage, this.level)
+            let crit_roll = random() < this.crit_chance;
+            if(crit_roll) damage *= this.crit_damage;
+            let speed = getLinearStat(this.bulletSpeed, this.level_multipliers.speed, this.level);
+            let pierce = getLinearStat(this.bulletPierce, this.level_multipliers.pierce, this.level);
+            let size = getLinearStat(this.bulletSize, this.level_multipliers.size, this.level);
+
 
             this.cooldown = this.fireRate * Math.pow(this.level_multipliers.rate, this.level);
             const bulletOptions = {
                 x: actualFiringOriginX,
                 y: actualFiringOriginY,
-                damage: getLinearStat(this.damage, this.level_multipliers.damage, this.level),
-                speed: getLinearStat(this.bulletSpeed, this.level_multipliers.speed, this.level),
-                pierce: getLinearStat(this.bulletPierce, this.level_multipliers.pierce, this.level),
-                radius: getLinearStat(this.bulletSize, this.level_multipliers.size, this.level),
+                damage: damage,
+                speed: speed,
+                pierce: pierce,
+                radius: size,
                 angle: angle,
                 worldContainer: this.worldContainer,
                 enemy_bullet: this.enemy_cannon, // Key change: bullets from enemy cannons are enemy_bullets
                 color: this.bullet_color,
+                crit_roll: crit_roll
             };
             
             const bullet = new this.bulletType(bulletOptions);
@@ -172,7 +184,7 @@ class DroneCannon extends Cannon {
             bulletSpeed: options.bulletSpeed || 0.2,
             bulletPierce: options.bulletPierce || 5,
             bulletSize: options.bulletSize || 15,
-            fireRate: options.fireRate || 200, 
+            fireRate: options.fireRate || 1500, 
             cannonLength: options.cannonLength || 45,
             cannonWidth: options.cannonWidth || 25,
             worldContainer: options.worldContainer || worldContainer,

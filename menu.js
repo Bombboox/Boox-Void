@@ -42,7 +42,7 @@ function main() {
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('menu-button') || 
             event.target.closest('.page')) {
-            setTimeout(applyFitText, 10); // Small delay to ensure DOM is updated
+            applyFitText();
         }
     });
 }
@@ -119,6 +119,8 @@ function openPage(page) {
         updateLevelDisplay();
     } else if (page === 'cannon') {
         updateCannonDisplay();
+    } else if (page === 'shop') {
+        updateShopDisplay();
     }
 }
 
@@ -177,6 +179,7 @@ function updateCannonDisplay() {
             else return;
         }
     }
+
     const cannonContainer = document.getElementById('cannon_container');
     if (!cannonContainer) return;
     cannonContainer.innerHTML = '';
@@ -204,6 +207,8 @@ function updateCannonDisplay() {
         const level = document.createElement('div');
         level.textContent = 'Level: ' + cannonData.level;
         level.style.margin = '10px 0 0 15px';
+        level.style.fontFamily = "'Press Start 2P', system-ui";
+        level.style.fontSize = '12px';
         cannonDiv.appendChild(level);
 
         if (isEquipped) {
@@ -211,11 +216,15 @@ function updateCannonDisplay() {
             equippedLabel.textContent = 'Equipped';
             equippedLabel.style.color = '#4CAF50';
             equippedLabel.style.margin = '10px 0 0 15px';
+            equippedLabel.style.fontFamily = "'Press Start 2P', system-ui";
+            equippedLabel.style.fontSize = '12px';
             cannonDiv.appendChild(equippedLabel);
         } else {
             const equipBtn = document.createElement('button');
-            equipBtn.className = 'menu-button';
+            equipBtn.className = 'menu-button equip_button';
             equipBtn.textContent = 'Equip';
+            equipBtn.style.width = '40%';
+            equipBtn.style.height = '30%';
             equipBtn.onclick = function() {
                 player_data.equippedWeapon = cannonType;
                 savePlayerData();
@@ -239,14 +248,92 @@ function updateCannonDisplay() {
             }
         };
         cannonDiv.appendChild(upgradeBtn);
-
         cannonContainer.appendChild(cannonDiv);
+
+        updateMoneyDisplay();
     }
 }
 
-// Helper for upgrade cost (simple formula, can be adjusted)
+function updateShopDisplay() {
+    if (typeof player_data === 'undefined' || player_data === null) {
+        if (typeof loadPlayerData === 'function') loadPlayerData();
+        if (typeof player_data === 'undefined' || player_data === null) {
+            if (typeof initializePlayerData === 'function') initializePlayerData();
+            else return;
+        }
+    }
+
+    const shopContainer = document.getElementById('shop_container');
+    if (!shopContainer) return;
+
+    const cannonMapping = {
+        "DefaultCannon": "default_weapon",
+        "ExplosiveCannon": "explosive_weapon",
+        "HitscanCannon": "hitscan_weapon",
+        "DroneCannon": "drone_weapon",
+    };
+    
+    const cannons = player_data.cannons;
+
+    // Setup buy buttons for each weapon
+    for (const cannon in cannonMapping) {
+        const elementId = cannonMapping[cannon];
+        if (!elementId) continue; 
+
+        const cannonDiv = document.getElementById(elementId);
+        if (!cannonDiv) continue; 
+
+        const buyButton = cannonDiv.querySelector('.buy_button');
+        if (!buyButton) continue;
+        
+        if (cannons[cannon] && cannons[cannon].owned) {
+            buyButton.style.display = 'none';
+            continue;
+        }
+        
+        buyButton.style.display = 'block';
+        
+        const costSpan = cannonDiv.querySelector(`#${elementId}_cost`);
+        if (!costSpan) continue;
+        
+        const cost = parseInt(costSpan.textContent);
+        
+        buyButton.disabled = player_data.money < cost;
+        
+        buyButton.onclick = function() {
+            if (player_data.money >= cost) {
+                // Deduct money
+                addMoney(-cost);
+                
+                // Mark as owned
+                if (!player_data.cannons[cannon]) {
+                    player_data.cannons[cannon] = {
+                        owned: true,
+                        level: 1
+                    };
+                } else {
+                    player_data.cannons[cannon].owned = true;
+                }
+                
+                // Save data
+                savePlayerData();
+                updateShopDisplay();
+            }
+        };
+    }
+
+    updateMoneyDisplay();
+}
+
+function updateMoneyDisplay() {
+    const money_displays = document.querySelectorAll('.money');
+    money_displays.forEach(money => {
+        money.textContent = `Gold: ${player_data.money}`;
+    });
+}
+
 function getCannonUpgradeCost(level) {
-    return 100 * level; // Example: 100, 200, 300, ...
+    return 100 * level; 
 }
 
 function openGame(level) {

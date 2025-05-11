@@ -75,7 +75,7 @@ function normalize(vector) {
     };
 }
 
-function random(min, max) {
+function random(min = 0, max = 1) {
     return min + Math.random() * (max - min);
 }
 

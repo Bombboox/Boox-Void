@@ -28,7 +28,7 @@
     background-color: rgb(175, 157, 157);
     color: #ffffff;
     font-family: "Press Start 2P", system-ui;
-    container-type: inline-size;
+    font-size: 14px;
     border: none;
     border-radius: 5px;
     padding: 10px 5px;
@@ -46,27 +46,17 @@
     word-spacing: -2px;
 }
 
-@container (max-width: 220px) {
-    .menu-button {
-        font-size: 12px;
-    }
-}
-
-@container (min-width: 221px) and (max-width: 300px) {
-    .menu-button {
-        font-size: 14px;
-    }
-}
-
-@container (min-width: 301px) {
-    .menu-button {
-        font-size: 16px;
-    }
-}
-
 .menu-button:active {
     box-shadow: none;
     transform: translate(0px, 10px);
+}
+
+.equip_button {
+    position: absolute;
+    bottom: 25px;
+    left: 10px;
+    width: 25%;
+    height: 25%;
 }
 
 .button-container {
@@ -85,6 +75,8 @@
     width: 200px;
     height: 50px;
 }
+
+
 
 .menu-button:hover {
     background-color: rgb(199, 187, 187);
@@ -194,25 +186,13 @@
 .buy_button {
     position: absolute;
     right: 10px;
-    bottom: 30px;
-    width: 20%;
-    height: 5%;
+    bottom: 25px;
+    width: 25%;
+    height: 10%;
     background-color: #7194D6;
     box-shadow: 0 0.8em #2f4d85;
     color: #000000; 
-    container-type: inline-size;
-}
-
-@container (max-width: 150px) {
-    .buy_button {
-        font-size: 10px;
-    }
-}
-
-@container (min-width: 151px) {
-    .buy_button {
-        font-size: 12px;
-    }
+    
 }
 
 .back_button {
@@ -221,19 +201,6 @@
     left: 10px;
     bottom: 20px;
     z-index: 5;
-    container-type: inline-size;
-}
-
-@container (max-width: 120px) {
-    .back_button {
-        font-size: 10px;
-    }
-}
-
-@container (min-width: 121px) {
-    .back_button {
-        font-size: 12px;
-    }
 }
 
 .buy_button:active {
@@ -300,6 +267,24 @@
 .level:hover {
     filter: brightness(1.5);
     cursor: pointer;
+}
+
+.money_display {
+    width: 100%;
+    height: 10%;
+    background-color: rgb(204, 160, 77);
+    box-shadow: 0 0 0px 8px rgb(80, 61, 26);
+
+    z-index: 3;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    font-family: "Press Start 2P", system-ui;
+    font-size: clamp(10px, 2.5vh, 60px);
+    color: rgb(58, 41, 10);
 }
 
 #level_1 {

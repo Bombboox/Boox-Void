@@ -35,16 +35,24 @@
 
         <div class="page" id="shop">
             <div class="container">
+                <nav class="money_display"><span class="money">0</span></nav>
                 <button class="menu-button back_button" onclick="openPage('menu')">Back</button>
-                <div class="weapons_container">
-
+                <div class="weapons_container" id="shop_container">
                     <div class="weapon" id="default_weapon">
                         <h1 class="weapon_name">Default</h1>
-                        <button class="menu-button buy_button">Buy</button>
+                        <button class="menu-button buy_button">Buy - <span id="default_weapon_cost">0</span></button>
                     </div>
-                    <div class="weapon" id="cannon_weapon">
-                        <h1 class="weapon_name">Cannon</h1>
-                        <button class="menu-button buy_button">Buy</button>
+                    <div class="weapon" id="explosive_weapon">
+                        <h1 class="weapon_name">Explosive</h1>
+                        <button class="menu-button buy_button">Buy - <span id="explosive_weapon_cost">500</span></button>
+                    </div>
+                    <div class="weapon" id="hitscan_weapon">
+                        <h1 class="weapon_name">Hitscan</h1>
+                        <button class="menu-button buy_button">Buy - <span id="hitscan_weapon_cost">1500</span></button>
+                    </div>
+                    <div class="weapon" id="drone_weapon">
+                        <h1 class="weapon_name">Drone</h1>
+                        <button class="menu-button buy_button">Buy - <span id="drone_weapon_cost">3000</span></button>
                     </div>
                     <div class="weapon" id="cannon_weapon"></div>
                     <div class="weapon" id="cannon_weapon"></div>
@@ -71,6 +79,7 @@
 
         <div class="page" id="cannon">
             <div class="container">
+                <nav class="money_display"><span class="money">0</span></nav>
                 <button class="menu-button back_button" onclick="openPage('menu')">Back</button>
                 <div class="weapons_container" id="cannon_container">
                     <!-- Cannons will be dynamically populated here -->
