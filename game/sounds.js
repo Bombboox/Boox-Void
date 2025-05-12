@@ -127,7 +127,7 @@ function pickSong(theme, num) {
             break;
     }
     const len = musicArray.length;
-    const index = num % len;
+    const index = Math.floor(num) % len;
     return musicArray[index];
 }
 

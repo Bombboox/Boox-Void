@@ -135,6 +135,10 @@ const WAVE_DATA = {
             },
             
         }
+    ],
+
+    5.5: [
+
     ]
 };
 
@@ -142,8 +146,22 @@ WAVE_DATA.level_instructions = {
     5: {
         onStart: () => {
             lighting.setDarknessOpacity(0.99);
-            stopAndPlayMusic('creepy_3', true, 0.2);
+            stopAndPlayMusic('creepy_3', true, 0.4);
             minimap.viewable = false;
+        }
+    },
+
+    5.5: {
+        survival: {
+            enemyCount: 2,
+            enemyTypes: {
+                "DefaultEnemy": 1,
+                "MiniBlue": 0.8,
+                "ToxicGreen": 0.5,
+                "Shrieker": 0.3,
+                "Ghost": 0.3,
+                "DefaultBoss": 0.01,
+            }
         }
     }
 };

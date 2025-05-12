@@ -65,15 +65,25 @@
         </div>
 
         <div class="page" id="levels">
-            <div class="container">
+            <button class="menu-button swap_button" onclick="openPage('survival_levels')">Survival</button>
             <button class="menu-button back_button" onclick="openPage('menu')">Back</button>
-                <div class="levels_container">
+            <div class="container"></div>
+                <div class="levels_container" id="regular_levels">
                     <div class="level" id="level_1" onclick="openGame(1)">1</div>
                     <div class="level" id="level_2" onclick="openGame(2)">2</div>
                     <div class="level" id="level_3" onclick="openGame(3)">3</div>
                     <div class="level" id="level_4" onclick="openGame(4)">4</div>
                     <div class="level" id="level_5" onclick="openGame(5)">5</div>
                 </div>
+            </div>
+        </div>
+
+        <div class="page" id="survival_levels">
+            <button class="menu-button swap_button" onclick="openPage('levels')">Regular</button>
+            <button class="menu-button back_button" onclick="openPage('menu')">Back</button>
+            <div class="container"></div>
+            <div class="levels_container" id="survival_levels">
+                <div class="level" id="level_1" onclick="openGame(5.5)">5 Survival</div>
             </div>
         </div>
 

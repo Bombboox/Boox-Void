@@ -153,6 +153,10 @@ class Player {
         for(let cannon of this.cannons) {
             cannon.graphics.visible = false;
         }
+
+        if(currentWaves.survival) {
+            if(typeof closeGame === 'function') beatLevel();
+        }
     }
 
     revive() {

@@ -1,3 +1,6 @@
+const MAX_STAR_LEVEL = 5;
+const MAX_BULLET_SPEED = 10;
+
 class Cannon {
     constructor(options = {}) {
         this.damage = options.damage || 1;
@@ -21,6 +24,16 @@ class Cannon {
         this.bullet_color = options.color || 0xffffff; 
 
         this.level = options.level || 1;
+        this.star_level = options.star_level || 0;
+
+        if(!options.star_multipliers) options.star_multipliers = {};
+        this.star_multipliers = {
+            damage: options.star_multipliers.damage || 0.5,
+            speed: options.star_multipliers.speed || 0.005,
+            pierce: options.star_multipliers.pierce || 0.05,
+            rate: options.star_multipliers.rate || 0.99,
+            size: options.star_multipliers.size || 0.001,
+        }
         
         if(!options.level_multipliers) options.level_multipliers = {};
         this.level_multipliers = {
@@ -74,6 +87,7 @@ class Cannon {
             let crit_roll = random() < this.crit_chance;
             if(crit_roll) damage *= this.crit_damage;
             let speed = getLinearStat(this.bulletSpeed, this.level_multipliers.speed, this.level);
+            speed = Math.min(speed, MAX_BULLET_SPEED);
             let pierce = getLinearStat(this.bulletPierce, this.level_multipliers.pierce, this.level);
             let size = getLinearStat(this.bulletSize, this.level_multipliers.size, this.level);
 

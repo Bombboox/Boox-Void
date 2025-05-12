@@ -1,0 +1,338 @@
+{
+  "objects": [
+    {
+      "type": "Point",
+      "x": 0,
+      "y": 0,
+      "tag": "spawn",
+      "color": "yellow"
+    },
+    {
+      "type": "Rectangle",
+      "x": -1675,
+      "y": -1678.138428376721,
+      "width": 3350,
+      "height": 558.3333333333334,
+      "color": "#410101",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -1234.349982946694,
+      "y": -1675,
+      "width": 43.24438059464342,
+      "height": 3350,
+      "color": "rgba(172, 17, 17, 0)",
+      "tag": "epassable"
+    },
+    {
+      "type": "Rectangle",
+      "x": -1675,
+      "y": 1116.6666666666665,
+      "width": 3350,
+      "height": 558.3333333333334,
+      "color": "#410101",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1149.4868418817691,
+      "y": -1674.1656582185885,
+      "width": 558.3333333333334,
+      "height": 3348.386365960112,
+      "color": "#410101",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -100,
+      "y": -200,
+      "width": 200,
+      "height": 50,
+      "color": "#670e0e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -100,
+      "y": 100,
+      "width": 200,
+      "height": 50,
+      "color": "#670e0e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -150,
+      "y": -200,
+      "width": 50,
+      "height": 350,
+      "color": "#670e0e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -750,
+      "y": -800,
+      "width": 200,
+      "height": 50,
+      "color": "#630d0d",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -750,
+      "y": -500,
+      "width": 200,
+      "height": 50,
+      "color": "#630d0d",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -800,
+      "y": -800,
+      "width": 50,
+      "height": 350,
+      "color": "#630d0d",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -750,
+      "y": 450,
+      "width": 200,
+      "height": 50,
+      "color": "#630d0d",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -750,
+      "y": 750,
+      "width": 200,
+      "height": 50,
+      "color": "#630d0d",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -800,
+      "y": 450,
+      "width": 50,
+      "height": 350,
+      "color": "#630d0d",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 600,
+      "y": -800,
+      "width": 200,
+      "height": 50,
+      "color": "#670e0e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 600,
+      "y": -500,
+      "width": 200,
+      "height": 50,
+      "color": "#670e0e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 550,
+      "y": -800,
+      "width": 50,
+      "height": 350,
+      "color": "#670e0e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 600,
+      "y": 450,
+      "width": 200,
+      "height": 50,
+      "color": "#670e0e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 600,
+      "y": 750,
+      "width": 200,
+      "height": 50,
+      "color": "#670e0e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 550,
+      "y": 450,
+      "width": 50,
+      "height": 350,
+      "color": "#670e0e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -1673.8472815824161,
+      "y": -1667.531744508247,
+      "width": 117.68331628002738,
+      "height": 3350,
+      "color": "#410101",
+      "tag": ""
+    },
+    {
+      "type": "Point",
+      "x": -1190.6299056077646,
+      "y": -49.998994707674804,
+      "tag": "left",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 1240.1584012446006,
+      "y": -32.9706834485782,
+      "tag": "right",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -181.962406571001,
+      "y": -1206.0922150945794,
+      "tag": "top",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -168.239263324443,
+      "y": 1208.5286363435466,
+      "tag": "bottom",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1398.818868898034,
+      "y": 753.9481153658896,
+      "tag": "espawn2",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1389.193838738434,
+      "y": -839.3596948163122,
+      "tag": "espawn2",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1385.8501565975341,
+      "y": -745.235026571912,
+      "tag": "espawn4",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1399.5688085788343,
+      "y": 633.8860225204895,
+      "tag": "espawn4",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1391.037641517734,
+      "y": 437.5115352336893,
+      "tag": "espawn",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1389.193838738434,
+      "y": 885.4790411501899,
+      "tag": "espawn",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1391.787581198534,
+      "y": -997.5779848824122,
+      "tag": "espawn",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1388.443899057634,
+      "y": -636.297843247712,
+      "tag": "espawn",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1406.6000962783341,
+      "y": 121.07495510148894,
+      "tag": "espawn",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1398.8188688980342,
+      "y": -195.36162503071145,
+      "tag": "bspawn",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1398.8188688980342,
+      "y": -532.5481448437118,
+      "tag": "espawn3",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1396.2251264379343,
+      "y": -382.11108215791165,
+      "tag": "espawn3",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1404.0063538182342,
+      "y": -44.92456234491125,
+      "tag": "espawn3",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 1493.035431633942,
+      "y": -1436.2257745255695,
+      "tag": "espawn5",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 1541.5665986950419,
+      "y": 1506.9219780071337,
+      "tag": "espawn5",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1457.5496248613617,
+      "y": 1534.7032053874336,
+      "tag": "espawn5",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1467.5571501307506,
+      "y": -1510.4418312401506,
+      "tag": "espawn5",
+      "color": "red"
+    }
+  ]
+}

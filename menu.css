@@ -21,7 +21,7 @@
     opacity: 0.8;
     background-image:  linear-gradient(#000000 1px, transparent 1px), linear-gradient(to right, #000000 1px, #0e0d0d 1px);
     background-size: 20px 20px;
-    z-index: 1;
+    z-index: -1;
 }
 
 .menu-button {
@@ -44,6 +44,7 @@
     align-items: center;
     letter-spacing: -0.5px;
     word-spacing: -2px;
+    z-index: 5;
 }
 
 .menu-button:active {
@@ -76,7 +77,13 @@
     height: 50px;
 }
 
-
+.swap_button {
+    position: absolute;
+    width: 15%;
+    left: 10px;
+    top: 20px;
+    z-index: 5;
+}
 
 .menu-button:hover {
     background-color: rgb(199, 187, 187);

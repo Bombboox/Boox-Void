@@ -10,6 +10,7 @@ class EnemySpawner {
         this.dmg_scale = options.dmg_scale || 1;
         this.speed_scale = options.speed_scale || 1;
         this.size_scale = options.size_scale || 1;
+        this.boss = options.boss || false;
     }
 
     spawn(worldContainer) {
@@ -79,8 +80,42 @@ class DefaultEnemySpawner extends EnemySpawner {
 
 
 class DefaultBossSpawner extends EnemySpawner {
-    constructor(x, y) {
-        super({ x, y, enemy_type: DefaultBoss, spawn_rate: 0, spawn_radius: 0 });
+    constructor(x, y, boss = true) {
+        super({ x, y, enemy_type: DefaultBoss, spawn_rate: 0, spawn_radius: 0, boss: boss});
+    }
+
+    spawn(worldContainer) {
+        // Create enemy at the spawner's position
+        let enemy = new this.enemy_type(
+            this.position.x, 
+            this.position.y, 
+            worldContainer,
+            this.boss
+        );
+        
+        // Ensure the enemy's position is set correctly
+        enemy.position.x = this.position.x;
+        enemy.position.y = this.position.y;
+        enemy.hp *= this.hp_scale;
+        enemy.maxHp *= this.hp_scale;
+        enemy.dmg *= this.dmg_scale;
+        enemy.speed *= this.speed_scale;
+        switch(enemy.hbtype) {
+            case "circle":
+                enemy.radius *= this.size_scale;
+                break;
+            case "rectangle":
+                enemy.width *= this.size_scale;
+                enemy.height *= this.size_scale;
+        }
+        enemy.refreshGraphics();
+
+        // If graphics are initialized, update position immediately
+        if (enemy.isGraphicsInitialized) {
+            enemy.graphics.position.set(this.position.x, this.position.y);
+        }
+        
+        enemies.push(enemy);
     }
 }
 

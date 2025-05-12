@@ -47,6 +47,18 @@ class Waves {
         if (this.special_instructions.onStart) {
             this.special_instructions.onStart();
         }
+
+        if(this.special_instructions.survival) {
+            this.survival = true;
+            this.survival_instructions = this.special_instructions.survival;
+            this.survival_enemy_count = this.special_instructions.survival_enemy_count;
+
+            for(const enemy of enemies) {
+                if(enemy.boss) enemy.boss = false;
+            }
+
+            this.spawn_survival_wave();
+        }
     }
     
     createTextElements() {
@@ -227,6 +239,63 @@ class Waves {
         }
     }
 
+    spawn_survival_wave() {
+        let enemyCount = this.survival_instructions.enemyCount || 10;
+        let availableEnemies = this.survival_instructions.enemyTypes || {
+            "DefaultEnemy": 1,
+            "MiniBlueEnemy": 0.7,
+            "ToxicGreenEnemy": 0.5,
+            "ShriekerEnemy": 0.3,
+            "GhostEnemy": 0.2
+        };
+        
+        let enemyTypes = {};
+        let enemyKeys = Object.keys(availableEnemies);
+        
+        // Create cumulative sum array for enemy chances
+        let cumulativeChances = [];
+        let totalWeight = 0;
+        
+        for (let enemyType of enemyKeys) {
+            totalWeight += availableEnemies[enemyType];
+            cumulativeChances.push({
+                type: enemyType,
+                value: totalWeight
+            });
+        }
+        
+        for (let i = 0; i < enemyCount; i++) {
+            // Generate random number between 0 and total weight
+            let roll = Math.random() * totalWeight;
+            
+            // Find the corresponding enemy using the cumulative chances
+            for (let j = 0; j < cumulativeChances.length; j++) {
+                if (roll <= cumulativeChances[j].value) {
+                    let enemyType = cumulativeChances[j].type;
+                    enemyTypes[enemyType] = (enemyTypes[enemyType] || 0) + 1;
+                    break;
+                }
+            }
+        }
+        
+        const waveNumber = this.current_wave + 1;
+        const hpScale = 1 + (waveNumber * 0.1); // Increase by 10% per wave
+        const dmgScale = 1 + (waveNumber * 0.05); // Increase by 5% per wave
+        const speedScale = 1 + (waveNumber * 0.03); // Increase by 3% per wave
+        
+        let wave = new Wave({
+            hp_scale: hpScale,
+            dmg_scale: dmgScale,
+            speed_scale: speedScale,
+            size_scale: 1,
+        }, enemyTypes);
+        this.waves.push(wave);
+        console.log(wave);
+        
+        // Increase enemy count for next wave
+        this.survival_instructions.enemyCount = Math.floor(enemyCount * 1.2);
+    }
+
     update(deltaTime, enemies) {
         this.updateTextAnimation(deltaTime);
         if(this.completed) return;
@@ -238,18 +307,23 @@ class Waves {
                 this.current_wave++;
                 this.enemiesRemainingText.visible = false;
                 
-                // Show praise text when a wave is completed
-                if (this.current_wave > 0) {
-                    this.showPraiseText();
+                if(this.survival) {
+                    this.spawn_survival_wave();
+                    this.in_between_waves = false;
+                } else {
+                    // Show praise text when a wave is completed
+                    if (this.current_wave > 0) {
+                        this.showPraiseText();
+                    }
+                    
+                    if(this.current_wave >= this.waveCount) {
+                        this.completed = true;
+                        this.showPraiseText();
+                        gameCompleted();
+                        return;
+                    }
+                    this.in_between_waves = false;
                 }
-                
-                if(this.current_wave >= this.waveCount) {
-                    this.completed = true;
-                    this.showPraiseText();
-                    gameCompleted();
-                    return;
-                }
-                this.in_between_waves = false;
             }
         }
     

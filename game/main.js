@@ -597,8 +597,15 @@ function attemptAudioUnlock() {
     }
 }
 
-function beatLevel(level_number) {
-    const money = Math.floor(50 + level_number * 20 * random(1,2));
+function beatLevel(level_number = activeLevel.number) {
+    var money;
+
+    if(currentWaves.survival) {
+        money = Math.floor(50 + level_number * 5 * Math.pow(1.35, currentWaves.current_wave) * random(1,2));
+    } else {
+        money = Math.floor(50 + level_number * 20 * random(1,2));
+    }
+
     addMoney(money);
     if (typeof closeGame === 'function') {
         setTimeout(() => {
