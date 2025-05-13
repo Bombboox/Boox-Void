@@ -1,5 +1,6 @@
 var player_data;
 const savedData = localStorage.getItem('player_data');
+const CURRENT_VERSION = 1; // Define the current version of player data structure
 
 function generateCannonId() {
     return 'cannon_' + Math.random().toString(36).substr(2, 9);
@@ -24,6 +25,11 @@ function getRandomRarity() {
 if (savedData) {
     try {
         player_data = JSON.parse(savedData);
+        // Check if the data version matches current version
+        if (!player_data.version || player_data.version !== CURRENT_VERSION) {
+            console.log('Player data version mismatch. Reinitializing data.');
+            initializePlayerData(true);
+        }
     } catch (error) {
         console.error('Failed to parse player data from localStorage:', error);
         initializePlayerData();
@@ -40,13 +46,26 @@ function savePlayerData() {
 function loadPlayerData() {
     const savedData = localStorage.getItem('player_data');
     if (savedData) {
-        player_data = JSON.parse(savedData);
+        try {
+            const loadedData = JSON.parse(savedData);
+            // Check version before loading
+            if (!loadedData.version || loadedData.version !== CURRENT_VERSION) {
+                console.log('Player data version mismatch during load. Reinitializing data.');
+                initializePlayerData();
+            } else {
+                player_data = loadedData;
+            }
+        } catch (error) {
+            console.error('Failed to parse player data during load:', error);
+            initializePlayerData();
+        }
     }
 }
 
-function initializePlayerData() {
-    if (!player_data) {
+function initializePlayerData(force = false) {
+    if (!player_data || force) {
         player_data = {
+            version: CURRENT_VERSION, // Add version to player data
             money: 0,
             level: 1,
             inventory: [
