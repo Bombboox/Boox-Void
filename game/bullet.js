@@ -211,7 +211,7 @@ class DroneBullet extends Bullet {
         super(droneOptions);
         this.fireRate = options.fireRate || 250; // ms between shots
         this.fireTimer = 0;
-        this.bulletDamage = options.bulletDamage || 2;
+        this.bulletDamage = Math.max(this.damage * 0.25, 1);
     }
 
     renderGraphics() {

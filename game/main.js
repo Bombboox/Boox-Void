@@ -138,16 +138,23 @@ async function startGame(level) {
     createHealthBar(worldContainer);
     player.initializeGraphics(worldContainer);
     player.cannons = [];
-    let equipped = (typeof player_data !== 'undefined' && player_data && player_data.equippedWeapon) ? player_data.equippedWeapon : 'DefaultCannon';
+    let equippedCannon = (typeof getEquippedCannon === 'function') ? getEquippedCannon() : null;
     const cannonClassMap = {
         'DefaultCannon': DefaultCannon,
         'ExplosiveCannon': ExplosiveCannon,
         'HitscanCannon': HitscanCannon,
         'DroneCannon': DroneCannon,
     };
-    let CannonClass = cannonClassMap[equipped] || DefaultCannon;
-    let cannonLevel = (player_data && player_data.cannons && player_data.cannons[equipped]) ? player_data.cannons[equipped].level : 1;
-    player.cannons.push(new CannonClass({ worldContainer: worldContainer, level: cannonLevel }));
+    if (equippedCannon && cannonClassMap[equippedCannon.type]) {
+        let CannonClass = cannonClassMap[equippedCannon.type];
+        player.cannons.push(new CannonClass({
+            worldContainer: worldContainer,
+            level: equippedCannon.level,
+            rarity: equippedCannon.rarity
+        }));
+    } else {
+        player.cannons.push(new DefaultCannon({ worldContainer: worldContainer, level: 1, rarity: 0 }));
+    }
  
     activeLevel.number = level;
     await configureLevel(activeLevel.number, player, worldContainer, lighting);

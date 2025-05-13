@@ -1,5 +1,5 @@
-const MAX_STAR_LEVEL = 5;
-const MAX_BULLET_SPEED = 10;
+const MAX_STAR_LEVEL = 5; // 0 stars, 1 star, 2 stars, 3 stars, 4 stars, 5 stars (combine dupes to increase)
+const MAX_RARITY = 4; // 0 is bronze, 1 is silver, 2 is gold, 3 is diamond, 4 is void
 
 class Cannon {
     constructor(options = {}) {
@@ -25,14 +25,24 @@ class Cannon {
 
         this.level = options.level || 1;
         this.star_level = options.star_level || 0;
+        this.rarity = options.rarity || 0;
+
+        if(!options.rarity_multipliers) options.rarity_multipliers = {};
+        this.rarity_multipliers = {
+            damage: options.rarity_multipliers.damage || 1.5,
+            speed: options.rarity_multipliers.speed || 1.05,
+            pierce: options.rarity_multipliers.pierce || 1.35,
+            rate: options.rarity_multipliers.rate || 1,
+            size: options.rarity_multipliers.size || 1,
+        }
 
         if(!options.star_multipliers) options.star_multipliers = {};
         this.star_multipliers = {
-            damage: options.star_multipliers.damage || 0.5,
-            speed: options.star_multipliers.speed || 0.005,
-            pierce: options.star_multipliers.pierce || 0.05,
-            rate: options.star_multipliers.rate || 0.99,
-            size: options.star_multipliers.size || 0.001,
+            damage: options.star_multipliers.damage || 1.2,
+            speed: options.star_multipliers.speed || 1.02,
+            pierce: options.star_multipliers.pierce || 1.2,
+            rate: options.star_multipliers.rate || 1,
+            size: options.star_multipliers.size || 1,
         }
         
         if(!options.level_multipliers) options.level_multipliers = {};
@@ -43,6 +53,12 @@ class Cannon {
             rate: options.level_multipliers.rate || 0.99,
             size: options.level_multipliers.size || 0.001,
         }
+
+        this.damage = this.damage * Math.pow(this.rarity_multipliers.damage, this.rarity) * Math.pow(this.star_multipliers.damage, this.star_level);
+        this.bulletSpeed = this.bulletSpeed * Math.pow(this.rarity_multipliers.speed, this.rarity) * Math.pow(this.star_multipliers.speed, this.star_level);
+        this.bulletPierce = this.bulletPierce * Math.pow(this.rarity_multipliers.pierce, this.rarity) * Math.pow(this.star_multipliers.pierce, this.star_level);
+        this.bulletSize = this.bulletSize * Math.pow(this.rarity_multipliers.size, this.rarity) * Math.pow(this.star_multipliers.size, this.star_level);
+        this.fireRate = this.fireRate * Math.pow(this.rarity_multipliers.rate, this.rarity) * Math.pow(this.star_multipliers.rate, this.star_level);
 
         this.graphics = new PIXI.Graphics();
         if (this.worldContainer) {
@@ -82,15 +98,12 @@ class Cannon {
             const actualFiringOriginX = firingPointPosition.x + (this.cannonLength / 2) * Math.cos(angle);
             const actualFiringOriginY = firingPointPosition.y + (this.cannonLength / 2) * Math.sin(angle);
 
-          
             let damage = getLinearStat(this.damage, this.level_multipliers.damage, this.level)
             let crit_roll = random() < this.crit_chance;
             if(crit_roll) damage *= this.crit_damage;
             let speed = getLinearStat(this.bulletSpeed, this.level_multipliers.speed, this.level);
-            speed = Math.min(speed, MAX_BULLET_SPEED);
             let pierce = getLinearStat(this.bulletPierce, this.level_multipliers.pierce, this.level);
             let size = getLinearStat(this.bulletSize, this.level_multipliers.size, this.level);
-
 
             this.cooldown = this.fireRate * Math.pow(this.level_multipliers.rate, this.level);
             const bulletOptions = {

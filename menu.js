@@ -4,6 +4,13 @@ const container = document.getElementById('big_container');
 const pauseContainer = document.getElementById('pause-container');
 const gamePage = document.getElementById('game');
 
+const weapon_costs = {
+    "DefaultCannon": document.getElementById('default_weapon_cost'),
+    "ExplosiveCannon": document.getElementById('explosive_weapon_cost'),
+    "HitscanCannon": document.getElementById('hitscan_weapon_cost'),
+    "DroneCannon": document.getElementById('drone_weapon_cost'),
+}
+
 // Set canvas dimensions to match window size
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -191,21 +198,52 @@ function updateCannonDisplay() {
         'HitscanCannon': 'Hitscan',
         'DroneCannon': 'Drone',
     };
+    const rarityNames = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Void'];
+    const rarityColors = ['#b08d57', '#c0c0c0', '#ffd700', '#b9f2ff', '#6e00ff'];
+    const rarityBorders = [
+        '4px solid #b08d57', // Bronze
+        '4px solid #c0c0c0', // Silver
+        '4px solid #ffd700', // Gold
+        '4px solid #b9f2ff', // Diamond
+        '4px solid #6e00ff, 2px dashed #fff' // Void (fancy)
+    ];
+    const rarityShadows = [
+        '0 0 16px 4px #b08d57aa',
+        '0 0 16px 4px #c0c0c0aa',
+        '0 0 24px 6px #ffd700cc',
+        '0 0 32px 8px #b9f2ffaa',
+        '0 0 40px 10px #6e00ff, 0 0 8px 2px #fff' // Void
+    ];
 
-    for (const cannonType in player_data.cannons) {
-        if (!player_data.cannons[cannonType].owned) continue;
-        const cannonData = player_data.cannons[cannonType];
-        const isEquipped = player_data.equippedWeapon === cannonType;
+    // Show all cannons in inventory
+    for (const cannon of player_data.inventory) {
+        const isEquipped = player_data.equippedCannonId === cannon.id;
         const cannonDiv = document.createElement('div');
         cannonDiv.className = 'weapon';
+        // Apply rarity border and shadow
+        cannonDiv.style.border = rarityBorders[cannon.rarity] || '2px solid #333';
+        cannonDiv.style.boxShadow = rarityShadows[cannon.rarity] || 'none';
+        if (cannon.rarity === 4) {
+            cannonDiv.style.background = 'linear-gradient(135deg, #6e00ff 0%, #b9f2ff 100%)';
+        }
 
         const name = document.createElement('h1');
         name.className = 'weapon_name';
-        name.textContent = cannonDisplayNames[cannonType] || cannonType;
+        name.textContent = cannonDisplayNames[cannon.type] || cannon.type;
         cannonDiv.appendChild(name);
 
+        // Rarity
+        const rarityDiv = document.createElement('div');
+        rarityDiv.textContent = 'Rarity: ' + rarityNames[cannon.rarity];
+        rarityDiv.style.color = rarityColors[cannon.rarity];
+        rarityDiv.style.margin = '10px 0 0 15px';
+        rarityDiv.style.fontFamily = "'Press Start 2P', system-ui";
+        rarityDiv.style.fontSize = '12px';
+        cannonDiv.appendChild(rarityDiv);
+
+        // Level
         const level = document.createElement('div');
-        level.textContent = 'Level: ' + cannonData.level;
+        level.textContent = 'Level: ' + cannon.level;
         level.style.margin = '10px 0 0 15px';
         level.style.fontFamily = "'Press Start 2P', system-ui";
         level.style.fontSize = '12px';
@@ -226,8 +264,7 @@ function updateCannonDisplay() {
             equipBtn.style.width = '40%';
             equipBtn.style.height = '30%';
             equipBtn.onclick = function() {
-                player_data.equippedWeapon = cannonType;
-                savePlayerData();
+                equipCannonById(cannon.id);
                 updateCannonDisplay();
             };
             cannonDiv.appendChild(equipBtn);
@@ -236,22 +273,39 @@ function updateCannonDisplay() {
         // Upgrade button
         const upgradeBtn = document.createElement('button');
         upgradeBtn.className = 'menu-button buy_button';
-        const upgradeCost = getCannonUpgradeCost(cannonData.level);
+        const upgradeCost = getCannonUpgradeCost(cannon.level);
         upgradeBtn.textContent = 'Upgrade (' + upgradeCost + ' $)';
         upgradeBtn.disabled = player_data.money < upgradeCost;
         upgradeBtn.onclick = function() {
             if (player_data.money >= upgradeCost) {
                 addMoney(-upgradeCost);
-                player_data.cannons[cannonType].level += 1;
-                savePlayerData();
+                upgradeCannonById(cannon.id);
                 updateCannonDisplay();
             }
         };
         cannonDiv.appendChild(upgradeBtn);
-        cannonContainer.appendChild(cannonDiv);
 
-        updateMoneyDisplay();
+        // Trash/Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'menu-button trash_button';
+        removeBtn.style.backgroundColor = '#b22222';
+        removeBtn.style.color = '#fff';
+        removeBtn.style.position = 'absolute';
+        removeBtn.style.top = '10px';
+        removeBtn.style.right = '10px';
+        removeBtn.textContent = '🗑️';
+        removeBtn.title = 'Trash this cannon';
+        removeBtn.onclick = function() {
+            if (confirm('Are you sure you want to trash this cannon? This cannot be undone.')) {
+                removeCannonById(cannon.id);
+                updateCannonDisplay();
+            }
+        };
+        cannonDiv.appendChild(removeBtn);
+
+        cannonContainer.appendChild(cannonDiv);
     }
+    updateMoneyDisplay();
 }
 
 function updateShopDisplay() {
@@ -267,61 +321,54 @@ function updateShopDisplay() {
     if (!shopContainer) return;
 
     const cannonMapping = {
-        "DefaultCannon": "default_weapon",
-        "ExplosiveCannon": "explosive_weapon",
-        "HitscanCannon": "hitscan_weapon",
-        "DroneCannon": "drone_weapon",
+        "DefaultCannon": { id: "default_weapon", cost: parseInt(document.getElementById('default_weapon_cost')?.textContent || 150) },
+        "ExplosiveCannon": { id: "explosive_weapon", cost: parseInt(document.getElementById('explosive_weapon_cost')?.textContent || 500) },
+        "HitscanCannon": { id: "hitscan_weapon", cost: parseInt(document.getElementById('hitscan_weapon_cost')?.textContent || 1500) },
+        "DroneCannon": { id: "drone_weapon", cost: parseInt(document.getElementById('drone_weapon_cost')?.textContent || 3000) },
     };
-    
-    const cannons = player_data.cannons;
 
     // Setup buy buttons for each weapon
-    for (const cannon in cannonMapping) {
-        const elementId = cannonMapping[cannon];
-        if (!elementId) continue; 
+    for (const cannonType in cannonMapping) {
+        const { id: elementId, cost } = cannonMapping[cannonType];
+        if (!elementId) continue;
 
         const cannonDiv = document.getElementById(elementId);
-        if (!cannonDiv) continue; 
+        if (!cannonDiv) continue;
 
         const buyButton = cannonDiv.querySelector('.buy_button');
         if (!buyButton) continue;
-        
-        if (cannons[cannon] && cannons[cannon].owned) {
-            buyButton.style.display = 'none';
-            continue;
-        }
-        
-        buyButton.style.display = 'block';
-        
-        const costSpan = cannonDiv.querySelector(`#${elementId}_cost`);
-        if (!costSpan) continue;
-        
-        const cost = parseInt(costSpan.textContent);
-        
-        buyButton.disabled = player_data.money < cost;
-        
-        buyButton.onclick = function() {
-            if (player_data.money >= cost) {
-                // Deduct money
-                addMoney(-cost);
-                
-                // Mark as owned
-                if (!player_data.cannons[cannon]) {
-                    player_data.cannons[cannon] = {
-                        owned: true,
-                        level: 1
-                    };
-                } else {
-                    player_data.cannons[cannon].owned = true;
-                }
-                
-                // Save data
-                savePlayerData();
-                updateShopDisplay();
-            }
-        };
-    }
 
+        // Set the cost span text
+        const costSpan = cannonDiv.querySelector(`#${elementId}_cost`);
+        if (costSpan) {
+            costSpan.textContent = cost;
+        }
+
+        // Only update the disabled state without recreating the onclick handler
+        buyButton.disabled = player_data.money < cost;
+
+        // Only set the onclick handler if it hasn't been set already
+        if (!buyButton.hasAttribute('data-initialized')) {
+            buyButton.setAttribute('data-initialized', 'true');
+            buyButton.onclick = function() {
+                if (player_data.money >= cost) {
+                    addMoney(-cost);
+                    const newCannon = addCannonToInventory(cannonType);
+                    // Just update the disabled state of buttons without recreating them
+                    document.querySelectorAll('.buy_button').forEach(btn => {
+                        const parentId = btn.closest('.weapon').id;
+                        const cannonInfo = Object.values(cannonMapping).find(info => info.id === parentId);
+                        if (cannonInfo) {
+                            btn.disabled = player_data.money < cannonInfo.cost;
+                        }
+                    });
+                    updateMoneyDisplay();
+                    updateCannonDisplay();
+                    alert('You got a ' + (['Bronze','Silver','Gold','Diamond','Void'][newCannon.rarity]) + ' ' + (cannonType.replace('Cannon','')) + '!');
+                }
+            };
+        }
+    }
     updateMoneyDisplay();
 }
 
