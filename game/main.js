@@ -613,6 +613,7 @@ function beatLevel(level_number = activeLevel.number) {
         money = Math.floor(50 + level_number * 5 * Math.pow(1.35, currentWaves.current_wave) * random(1,2));
     } else {
         money = Math.floor(50 + level_number * 20 * random(1,2));
+        saveLevelData(level_number);
     }
 
     addMoney(money);

@@ -124,7 +124,7 @@ function addMoney(amount) {
     savePlayerData();
 }
 
-function beatLevel(level) {
+function saveLevelData(level) {
     if(level + 1 > player_data.level) {
         player_data.level = level + 1;
         savePlayerData();
