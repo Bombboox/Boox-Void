@@ -113,6 +113,7 @@ async function startGame(level) {
     homeButton.eventMode = 'static';
     homeButton.cursor = 'pointer';
     homeButton.zIndex = 2000;
+    homeButton.visible = false;
 
     restartButton = new PIXI.Text({text: "RESTART", style: {fontFamily: 'Arial', fontSize: 24, fill: 0xffffff }});
     restartButton.position.set(10, 80);
@@ -193,6 +194,7 @@ async function startGame(level) {
         setupMobileControls();
         repositionJoysticks();
         if (!audioOverlay) createAudioOverlay();
+        homeButton.visible = true;
     }
 
     addGlobalEventListeners();
