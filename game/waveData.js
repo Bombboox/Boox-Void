@@ -1,4 +1,92 @@
 const WAVE_DATA = {
+    0: [
+        {
+            options: {
+                special_condition: () => {
+                    return false;
+                }
+            },
+            special_instructions: async () => {
+                activeDialogue.showDialogue({
+                    text: "Hello, hello? I hope you're getting this message, if this damn transmitter is working. You see the keyboard in front of you? Go ahead and hit spacebar if you can hear me.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_bored.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "Alright, I got your signal so I guess you can hear me... Cool, I guess I should get started huh. So umm, yeah, congratulations on becoming a commander, my name is Sophia and I'll be your assistant on missions... so you don't die and stuff.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_bored.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "So yeah, before we get started, I'll give you a little rundown of your controls. Pretty basic sh*t but, you know, procedures and whatnot.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_grin.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "Let's practice moving around. Hit WASD on the keyboard in front of you.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_bored.png" })),
+                    special_condition: () => {
+                        return keyboard["w"] || keyboard["a"] || keyboard["s"] || keyboard["d"];
+                    }
+                });
+                activeDialogue.showDialogue({
+                    text: "Good job, dude, you're a prodigy. Alright now, try hitting that mouse button, it'll fire your cannon.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_bored.png" })),
+                    special_condition: () => {
+                        return player.cannons[0].cooldown > 0;
+                    }
+                });
+                activeDialogue.showDialogue({
+                    text: "Ok sweet.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_bored.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "Now let's practice shooting, I'm gonna release a bad guy, and you're gonna shoot at him, so good luck...",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_bored.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "Be careful, little buddy!",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_pleading.png" })),
+                    special_condition: () => {
+                        return activeDialogue.globalTimer >= 2000;
+                    },
+                    onEnd: () => {
+                        currentWaves.trigger_next_wave();
+                    }
+                });
+            }
+        },
+        {
+            special_instructions: () => {
+                player.camera.queueCommands(
+                    player.camera.lerpTo(enemies.find(e => e instanceof DefaultEnemySpawner).position, 1000, 'easeInOut'),
+                    player.camera.shake_camera(1000, 150, 1.5, 1.2),
+                    player.camera.lerpTo(player, 1000, 'easeInOut')
+                );
+            },
+            enemies: {
+                "DefaultEnemy": 1,
+            }
+        },
+        {
+            options: {
+                special_condition: () => {
+                    return false;
+                }
+            },
+            special_instructions: async () => {
+                activeDialogue.showDialogue({
+                    text: "Nice, alright yeah so, that's pretty much it for your training. I wish you the best on your future missions, of course I'll be there to help you out and stuff.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_bored.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "I'll see you then, bye bye.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "../sprites/sophia_default.png" })),
+                    onEnd: () => {
+                        currentWaves.trigger_next_wave();
+                    }
+                });
+            }
+        }
+    ],
+    
     1: [
         {
             enemies: {
@@ -139,6 +227,48 @@ const WAVE_DATA = {
 
     5.5: [
 
+    ],
+
+    6: [
+        {
+            enemies: {
+                "DefaultEnemy": 1,
+            },
+            options: {
+                hp_scale: 5,
+                speed_scale: 2,
+                size_scale: 2.5,
+                dmg_scale: 2,
+            }
+        },
+        {
+            enemies: {
+                "Ghost": 2,
+                "ToxicGreen": 1,
+            },
+            options: {
+                hp_scale: 5,
+                speed_scale: 2,
+                size_scale: 1.5,
+                dmg_scale: 2,
+            }
+        },
+        {
+            enemies: {
+                "Ghost": 5,
+                "ToxicGreen": 2,
+                "DefaultEnemy": 1,
+            },
+            options: {
+                hp_scale: 5,
+                speed_scale: 2,
+                size_scale: 1.5,
+                dmg_scale: 2,
+            },
+            special_instructions: () => {
+                EnemySpawner.setSpawnRateForType(Ghost, 1500);
+            }
+        }
     ]
 };
 

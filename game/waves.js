@@ -304,26 +304,7 @@ class Waves {
             this.updateEnemiesRemainingText(enemies);
             
             if(this.waves[this.current_wave].completed()) {
-                this.current_wave++;
-                this.enemiesRemainingText.visible = false;
-                
-                if(this.survival) {
-                    this.spawn_survival_wave();
-                    this.in_between_waves = false;
-                } else {
-                    // Show praise text when a wave is completed
-                    if (this.current_wave > 0) {
-                        this.showPraiseText();
-                    }
-                    
-                    if(this.current_wave >= this.waveCount) {
-                        this.completed = true;
-                        this.showPraiseText();
-                        gameCompleted();
-                        return;
-                    }
-                    this.in_between_waves = false;
-                }
+                this.trigger_next_wave();
             }
         }
     
@@ -336,6 +317,7 @@ class Waves {
                 this.totalEnemiesInWave = this.waves[this.current_wave].getTotalEnemies();
                 this.remainingEnemies = this.totalEnemiesInWave;
                 
+                console.log("wave spawned");
                 this.waves[this.current_wave].spawn_wave(enemies);
                 this.in_between_waves = true;
                 this.timer = 0;
@@ -343,6 +325,29 @@ class Waves {
                 // Show wave text animation
                 this.showWaveText(this.current_wave + 1);
             }
+        }
+    }
+
+    trigger_next_wave() {
+        this.current_wave++;
+        this.enemiesRemainingText.visible = false;
+        
+        if(this.survival) {
+            this.spawn_survival_wave();
+            this.in_between_waves = false;
+        } else {
+            // Show praise text when a wave is completed
+            if (this.current_wave > 0) {
+                this.showPraiseText();
+            }
+            
+            if(this.current_wave >= this.waveCount) {
+                this.completed = true;
+                this.showPraiseText();
+                gameCompleted();
+                return;
+            }
+            this.in_between_waves = false;
         }
     }
 
@@ -384,17 +389,15 @@ class Wave {
         
         if (Object.keys(this.enemyTypes).length === 0) {
             for(let spawner of enemy_spawners) {
-                // Apply all options to the spawner
                 for (const [key, value] of Object.entries(this.options)) {
                     spawner[key] = value;
                 }
-                spawner.spawns_remaining = 1; 
+                spawner.spawns_remaining = 0; 
             }
             return;
         }
         
         for(let spawner of enemy_spawners) {
-            // Apply all options to the spawner
             for (const [key, value] of Object.entries(this.options)) {
                 spawner[key] = value;
             }
@@ -464,6 +467,11 @@ class Wave {
         
         let regular_enemies = enemies.filter(enemy => !(enemy instanceof EnemySpawner) && Object.getPrototypeOf(enemy.constructor).name !== 'EnemySpawner');
         if(regular_enemies.length > 0) return false;
+
+        if(this.options.special_condition != undefined) {
+            return this.options.special_condition();
+        }
+
         return true;
     }
 }

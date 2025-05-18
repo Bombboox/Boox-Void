@@ -1,6 +1,6 @@
 class EnemySpawner {
     constructor(options = {}) {
-        this.position = vector(options.x || 0, options.y || 0); // Use vector for position to match enemy class
+        this.position = vector(options.x || 0, options.y || 0); 
         this.enemy_type = options.enemy_type;
         this.spawn_rate = options.spawn_rate || 3000;
         this.spawn_radius = options.spawn_radius || 0;
@@ -14,31 +14,20 @@ class EnemySpawner {
     }
 
     spawn(worldContainer) {
-        // Create enemy at the spawner's position
-        let enemy = new this.enemy_type(
-            this.position.x, 
-            this.position.y, 
-            worldContainer
-        );
-        
-        // Ensure the enemy's position is set correctly
-        enemy.position.x = this.position.x;
-        enemy.position.y = this.position.y;
-        enemy.hp *= this.hp_scale;
-        enemy.maxHp *= this.hp_scale;
-        enemy.dmg *= this.dmg_scale;
-        enemy.speed *= this.speed_scale;
-        switch(enemy.hbtype) {
-            case "circle":
-                enemy.radius *= this.size_scale;
-                break;
-            case "rectangle":
-                enemy.width *= this.size_scale;
-                enemy.height *= this.size_scale;
-        }
+        let enemy = new this.enemy_type({
+            x: this.position.x,
+            y: this.position.y,
+            worldContainer: worldContainer,
+            scales: {
+                hp: this.hp_scale,
+                dmg: this.dmg_scale,
+                speed: this.speed_scale,
+                size: this.size_scale
+            }
+        });
+
         enemy.refreshGraphics();
 
-        // If graphics are initialized, update position immediately
         if (enemy.isGraphicsInitialized) {
             enemy.graphics.position.set(this.position.x, this.position.y);
         }
@@ -55,7 +44,7 @@ class EnemySpawner {
         }
     }
 
-    destroy(worldContainer) { // Accept container to remove graphics
+    destroy(worldContainer) { 
         const index = enemies.indexOf(this);
         if (index !== -1) {
             enemies.splice(index, 1);
@@ -85,32 +74,21 @@ class DefaultBossSpawner extends EnemySpawner {
     }
 
     spawn(worldContainer) {
-        // Create enemy at the spawner's position
-        let enemy = new this.enemy_type(
-            this.position.x, 
-            this.position.y, 
-            worldContainer,
-            this.boss
-        );
+        let enemy = new this.enemy_type({
+            x: this.position.x,
+            y: this.position.y,
+            worldContainer: worldContainer,
+            boss: this.boss,
+            scales: {
+                hp: this.hp_scale,
+                dmg: this.dmg_scale,
+                speed: this.speed_scale,
+                size: this.size_scale
+            }
+        });
         
-        // Ensure the enemy's position is set correctly
-        enemy.position.x = this.position.x;
-        enemy.position.y = this.position.y;
-        enemy.hp *= this.hp_scale;
-        enemy.maxHp *= this.hp_scale;
-        enemy.dmg *= this.dmg_scale;
-        enemy.speed *= this.speed_scale;
-        switch(enemy.hbtype) {
-            case "circle":
-                enemy.radius *= this.size_scale;
-                break;
-            case "rectangle":
-                enemy.width *= this.size_scale;
-                enemy.height *= this.size_scale;
-        }
         enemy.refreshGraphics();
 
-        // If graphics are initialized, update position immediately
         if (enemy.isGraphicsInitialized) {
             enemy.graphics.position.set(this.position.x, this.position.y);
         }

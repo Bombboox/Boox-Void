@@ -2,81 +2,162 @@
   "objects": [
     {
       "type": "Point",
-      "x": 0,
+      "x": -250,
       "y": 0,
       "tag": "spawn",
-      "color": "#ccff00"
+      "color": "yellow"
     },
     {
       "type": "Rectangle",
-      "x": -100,
-      "y": -100,
+      "x": -650,
+      "y": -475,
+      "width": 79.16666666666666,
+      "height": 950,
+      "color": "#6e6e6e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -650,
+      "y": -474.99999999999994,
+      "width": 2200,
+      "height": 79.16666666666666,
+      "color": "#6e6e6e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -650,
+      "y": 395.8333333333333,
+      "width": 2200,
+      "height": 79.16666666666666,
+      "color": "#6e6e6e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 150,
+      "y": -200,
+      "width": 50,
+      "height": 400,
+      "color": "#6e6e6e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 450,
+      "y": -400,
       "width": 50,
       "height": 200,
-      "color": "#ffffff"
+      "color": "#6e6e6e",
+      "tag": ""
     },
     {
       "type": "Rectangle",
-      "x": -100,
-      "y": -100,
-      "width": 300,
-      "height": 50,
-      "color": "#ffffff"
-    },
-    {
-      "type": "Rectangle",
-      "x": -100,
-      "y": 50,
-      "width": 300,
-      "height": 50,
-      "color": "#ffffff"
-    },
-    {
-      "type": "Rectangle",
-      "x": 150,
-      "y": -650,
+      "x": 450,
+      "y": 200,
       "width": 50,
-      "height": 550,
-      "color": "#ffffff"
+      "height": 200,
+      "color": "#6e6e6e",
+      "tag": ""
     },
     {
       "type": "Rectangle",
-      "x": 150,
-      "y": 100,
+      "x": 750,
+      "y": -200,
       "width": 50,
-      "height": 550,
-      "color": "#ffffff"
+      "height": 400,
+      "color": "#6e6e6e",
+      "tag": ""
     },
     {
-      "type": "Circle",
-      "x": 600,
+      "type": "Rectangle",
+      "x": 1050,
+      "y": -400,
+      "width": 50,
+      "height": 200,
+      "color": "#6e6e6e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1050,
+      "y": 200,
+      "width": 50,
+      "height": 200,
+      "color": "#6e6e6e",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1550,
+      "y": -400,
+      "width": 50,
+      "height": 800,
+      "color": "rgba(255, 255, 255, 0)",
+      "tag": "epassable"
+    },
+    {
+      "type": "Point",
+      "x": 1550,
       "y": 0,
-      "radius": 125,
-      "color": "#ffffff"
+      "tag": "right",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -650.3186308177104,
+      "y": -476.10268867172323,
+      "tag": "top",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -648.3072518425593,
+      "y": 475.8881446236299,
+      "tag": "bottom",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -650,
+      "y": 0,
+      "tag": "left",
+      "color": "red"
     },
     {
       "type": "Rectangle",
-      "x": 1000,
-      "y": -650,
+      "x": 1550,
+      "y": -450,
+      "width": 350,
+      "height": 50,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1550,
+      "y": 400,
+      "width": 350,
+      "height": 50,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1850,
+      "y": -450,
       "width": 50,
-      "height": 1300,
-      "color": "#ffffff"
+      "height": 900,
+      "color": "#ff0000",
+      "tag": ""
     },
     {
-      "type": "Rectangle",
-      "x": 200,
-      "y": 600,
-      "width": 800,
-      "height": 50,
-      "color": "#ffffff"
-    },
-    {
-      "type": "Rectangle",
-      "x": 200,
-      "y": -650,
-      "width": 800,
-      "height": 50,
-      "color": "#ffffff"
+      "type": "Point",
+      "x": 1700,
+      "y": 0,
+      "tag": "espawn",
+      "color": "red"
     }
   ]
 }

@@ -74,6 +74,8 @@ var minimap = null;
 var backgroundGraphics = null;
 var backgroundColor = 0x000000;
 
+var activeDialogue = null;
+
 async function startGame(level) {
     if (!appInitialized) {
         console.error("App not initialized. Call initializeApp first.");
@@ -82,6 +84,9 @@ async function startGame(level) {
     if (gameRunning) {
         stopGameLogic(true); 
     }
+
+    if(activeDialogue) activeDialogue.destroy();
+    activeDialogue = new DialogueBox(app);
 
     gameRunning = true;
     paused = false;
@@ -321,6 +326,10 @@ const gameLoop = (ticker) => {
             minimap.update();
         }
 
+        if(activeDialogue) {
+            activeDialogue.update(deltaTime);
+        }
+
         backgroundGraphics.clear();
         backgroundGraphics.rect(-worldContainer.x, -worldContainer.y, window.innerWidth, window.innerHeight);
         backgroundGraphics.fill(backgroundColor);
@@ -395,6 +404,7 @@ function handleResize() {
     if (!appInitialized) return;
     app.renderer.resize(window.innerWidth, window.innerHeight);
     app.renderer.resolution = devicePixelRatio;
+    if(activeDialogue) activeDialogue.resize();
 
     if (isMobile) {
         repositionJoysticks();

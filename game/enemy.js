@@ -1,5 +1,5 @@
 class Enemy {
-    constructor(options = {}) {
+    constructor(options = {}) {   
         this.position = vector(options.x || 0, options.y || 0);
         this.target = vector(options.x || 0, options.y || 0);
         this.width = options.width || 50;
@@ -21,6 +21,20 @@ class Enemy {
 
         this.graphics = new PIXI.Graphics();
         this.isGraphicsInitialized = false;
+
+        this.scales = options.scales || {
+            hp: 1,
+            dmg: 1,
+            speed: 1,
+            size: 1
+        };
+
+        this.hp = this.maxHp * this.scales.hp;
+        this.dmg = this.dmg * this.scales.dmg;
+        this.speed = this.speed * this.scales.speed;
+        this.width = this.width * this.scales.size;
+        this.height = this.height * this.scales.size;
+        this.radius = this.radius * this.scales.size;
     }
 
     initializeGraphics(worldContainer) {
@@ -333,17 +347,18 @@ class Enemy {
 }
 
 class DefaultEnemy extends Enemy {
-    constructor(x, y, worldContainer) {
+    constructor(options = {}) {
         super({
-            x: x,
-            y: y,
+            x: options.x,
+            y: options.y,
             width: 50,
             height: 50,
             hp: 10,
             speed: 0.25,
             name: "RED GUY",
+            scales: options.scales
         });
-        this.initializeGraphics(worldContainer);
+        this.initializeGraphics(options.worldContainer);
     }
 
     renderGraphics() {
@@ -359,10 +374,10 @@ class DefaultEnemy extends Enemy {
 }
 
 class MiniBlue extends Enemy {
-    constructor(x, y, worldContainer) {
+    constructor(options = {}) {
         super({
-            x: x,
-            y: y,
+            x: options.x,
+            y: options.y,
             dmg: 20,
             hp: 3,
             speed: 0.50,
@@ -370,7 +385,7 @@ class MiniBlue extends Enemy {
             name: "MINI BLUE"
         }); 
         this.hbtype = "circle";
-        this.initializeGraphics(worldContainer);
+        this.initializeGraphics(options.worldContainer);
     }
 
     renderGraphics() {
@@ -381,17 +396,18 @@ class MiniBlue extends Enemy {
 }
 
 class Shrieker extends Enemy {
-    constructor(x, y, worldContainer) {
+    constructor(options = {}) {
         super({
-            x: x,
-            y: y,
+            x: options.x,
+            y: options.y,
             width: 50,
             height: 50,
             name: "SHRIEKER",
             hp: 10,
             speed: 0.10,
             hbtype: "circle",
-            radius: 25
+            radius: 25,
+            scales: options.scales 
         });
         this.normalSpeed = 0.10;
         this.shriekSpeed = 0.40; // 4x normal speed
@@ -405,7 +421,7 @@ class Shrieker extends Enemy {
         this.shriekMoving = false;
         this.shakeAmount = 3; // Maximum shake offset in pixels
         this.shakeOffset = { x: 0, y: 0 }; // Current shake offset
-        this.initializeGraphics(worldContainer);
+        this.initializeGraphics(options.worldContainer);
     }
 
     renderGraphics() {
@@ -484,19 +500,20 @@ class Shrieker extends Enemy {
     }
 }
 class Ghost extends Enemy {
-    constructor(x, y, worldContainer) {
+    constructor(options = {}) {
         super({
-            x: x,
-            y: y,
+            x: options.x,
+            y: options.y,
             hp: 10,
             speed: 0.15,
             name: "GHOST",
             ghosted: true,
             targetting: false,
             hbtype: "circle",
-            radius: 25
+            radius: 25,
+            scales: options.scales
         });
-        this.initializeGraphics(worldContainer);
+        this.initializeGraphics(options.worldContainer);
     }
 
     renderGraphics() {
@@ -518,25 +535,26 @@ class Ghost extends Enemy {
 }
 
 class ToxicGreen extends Enemy {
-    constructor(x, y, worldContainer) {
+    constructor(options = {}) {
         super({
-            x: x,
-            y: y,
+            x: options.x,
+            y: options.y,
             width: 50,
             height: 50,
             hp: 5,
             speed: 0.25,
             name: "TOXIC GREEN",
-            damage: 0 // will spawn bullets so doesnt need damage
+            damage: 25,
+            scales: options.scales
         });
-        this.explosionRadius = this.width + 150; // distance to player to trigger explosion
-        this.bulletCount = 8;    // number of bullets in explosion
-        this.bulletDamage = 25;     // damage per bullet
-        this.bulletSpeed = 0.4;    // speed of explosion bullets
-        this.bulletSize = 8;       // size of explosion bullets
+        this.explosionRadius = this.width + 150; 
+        this.bulletCount = 8;    
+        this.bulletDamage = this.dmg;     
+        this.bulletSpeed = Math.min((this.speed) * 1.5, 0.5);    
+        this.bulletSize = (this.width + this.height) / 16;       
         this.bulletPierce = 1;
         this.bulletType = DefaultBullet;
-        this.initializeGraphics(worldContainer);
+        this.initializeGraphics(options.worldContainer);
     }
 
     renderGraphics() {
@@ -588,16 +606,17 @@ class ToxicGreen extends Enemy {
 }
 
 class DefaultBoss extends Enemy {
-    constructor(x, y, worldContainer, boss = true) {
+    constructor(options = {}) {
         super({
-            x: x,
-            y: y,
+            x: options.x,
+            y: options.y,
             width: 100,
             height: 100,
             hp: 150,
             speed: 0.10,
             name: "BOSS GUY",
-            targetRadius: random(250, 500)
+            targetRadius: random(250, 500),
+            scales: options.scales
         });
 
         this.cannon = new DefaultCannon({
@@ -613,7 +632,7 @@ class DefaultBoss extends Enemy {
         });
         
         this.angle = 0;
-        this.boss = boss;
+        this.boss = options.boss;
         
         // Camera control properties
         this.cameraFocusing = false;
@@ -632,7 +651,7 @@ class DefaultBoss extends Enemy {
             );
         }
 
-        this.initializeGraphics(worldContainer);
+        this.initializeGraphics(options.worldContainer);
     }
 
     renderGraphics() {
