@@ -4,7 +4,8 @@ const WAVE_DATA = {
             options: {
                 special_condition: () => {
                     return false;
-                }
+                },
+                fake_wake: true,
             },
             special_instructions: async () => {
                 activeDialogue.showDialogue({
@@ -69,7 +70,8 @@ const WAVE_DATA = {
             options: {
                 special_condition: () => {
                     return false;
-                }
+                },
+                fake_wake: true,
             },
             special_instructions: async () => {
                 activeDialogue.showDialogue({
@@ -99,6 +101,34 @@ const WAVE_DATA = {
             }
         },
         {
+            options: {
+                fake_wake: true,
+                special_condition: () => {
+                    return false;
+                },
+            },
+            special_instructions: async () => {
+                activeDialogue.showDialogue({
+                    text: "Dude, I am detecting a massive wave incoming.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "./sprites/sophia_bored.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "Take out the little ones first so you can focus on the big guy.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "./sprites/sophia_bored.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "Be careful, alright?",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "./sprites/sophia_bored.png" })),
+                    special_condition: () => {
+                        return activeDialogue.globalTimer >= 2000;
+                    },
+                    onEnd: () => {
+                        currentWaves.trigger_next_wave();
+                    }
+                });
+            }
+        },
+        {
             enemies: {
                 "DefaultEnemy": 4,
                 "DefaultBoss": 1
@@ -106,6 +136,27 @@ const WAVE_DATA = {
             special_instructions: () => {
                 stopAllMusic();
                 playMusic('boss_1', true, 0.25);
+            }
+        },
+        {
+            options: {
+                fake_wake: true,
+                special_condition: () => {
+                    return false;
+                },
+            },
+            special_instructions: async () => {
+                activeDialogue.showDialogue({
+                    text: "Woah! That was f*cking awesome!",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "./sprites/sophia_default.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "Nice shooting, boss!",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "./sprites/sophia_grin.png" })),
+                    onEnd: () => {
+                        currentWaves.trigger_next_wave();
+                    }
+                });
             }
         }
     ],
@@ -198,6 +249,22 @@ const WAVE_DATA = {
 
     5: [
         {
+            special_instructions: async () => {
+                activeDialogue.showDialogue({
+                    text: "Commander? I can't see anything, are you there?",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "./sprites/sophia_bored.png" })),
+                    special_condition: () => {
+                        return activeDialogue.globalTimer >= 2000;
+                    },
+                });
+                activeDialogue.showDialogue({
+                    text: "Sh*t, I'm losing my sig-",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "./sprites/sophia_pleading.png" })),
+                    special_condition: () => {
+                        return activeDialogue.globalTimer >= 2000;
+                    },
+                });
+            },
             enemies: {
                 "DefaultEnemy": 1,
             },

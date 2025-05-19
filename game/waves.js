@@ -17,6 +17,7 @@ class Waves {
         this.waves = waves;
         this.waveCount = waves.length;
         this.current_wave = 0;
+        this.actual_wave = 1;
 
         this.delayBetweenWaves = 1000;
         this.timer = 0;
@@ -321,13 +322,19 @@ class Waves {
                 this.timer = 0;
                 
                 // Show wave text animation
-                this.showWaveText(this.current_wave + 1);
+                if(!this.waves[this.current_wave].options.fake_wake) {
+                    this.showWaveText(this.actual_wave);
+                }
             }
         }
     }
 
     trigger_next_wave() {
+        const fake_wave = this.waves[this.current_wave].options.fake_wake;
         this.current_wave++;
+        if(!fake_wave) {
+            this.actual_wave++;
+        }
         this.enemiesRemainingText.visible = false;
         
         if(this.survival) {
@@ -335,7 +342,7 @@ class Waves {
             this.in_between_waves = false;
         } else {
             // Show praise text when a wave is completed
-            if (this.current_wave > 0) {
+            if (this.current_wave > 0 && !fake_wave) {
                 this.showPraiseText();
             }
             
