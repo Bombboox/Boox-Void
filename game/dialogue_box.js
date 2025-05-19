@@ -187,6 +187,5 @@ class DialogueBox {
             this.options.padding * 2,
             this.app.screen.height - this.options.height + (this.options.padding * 2)
         );
-        this.text.updateText();
     }
 }

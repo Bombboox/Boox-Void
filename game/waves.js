@@ -290,7 +290,6 @@ class Waves {
             size_scale: 1,
         }, enemyTypes);
         this.waves.push(wave);
-        console.log(wave);
         
         // Increase enemy count for next wave
         this.survival_instructions.enemyCount = Math.floor(enemyCount * 1.2);
@@ -317,7 +316,6 @@ class Waves {
                 this.totalEnemiesInWave = this.waves[this.current_wave].getTotalEnemies();
                 this.remainingEnemies = this.totalEnemiesInWave;
                 
-                console.log("wave spawned");
                 this.waves[this.current_wave].spawn_wave(enemies);
                 this.in_between_waves = true;
                 this.timer = 0;
