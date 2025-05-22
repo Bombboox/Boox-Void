@@ -18,6 +18,7 @@ class Enemy {
         this.hbtype = options.hbtype || "rectangle";
         this.targeting = options.targetting || true;
         this.ghosted = options.ghosted || false;
+        this.boss = options.boss || false;
 
         this.graphics = new PIXI.Graphics();
         this.isGraphicsInitialized = false;
@@ -29,7 +30,8 @@ class Enemy {
             size: 1
         };
 
-        this.hp = this.maxHp * this.scales.hp;
+        this.maxHp = this.maxHp * this.scales.hp;
+        this.hp = this.maxHp;
         this.dmg = this.dmg * this.scales.dmg;
         this.speed = this.speed * this.scales.speed;
         this.width = this.width * this.scales.size;
@@ -88,12 +90,22 @@ class Enemy {
         });
 
         if(this.hp <= 0) {
-            this.destroy(worldContainer);
+            this.death(worldContainer);
             return;
         }
         
         this.invincibilityFrames = this.invincibilityDuration;
         playSound('hit', 0.6);
+    }
+
+    death(worldContainer) {
+        if(this.boss) {
+            if(currentWaves) currentWaves.trigger_next_wave();
+            destroyAllEnemies();
+            return;
+        }
+        
+        this.destroy(worldContainer);
     }
 
     destroy(worldContainer) {
@@ -356,7 +368,8 @@ class DefaultEnemy extends Enemy {
             hp: 10,
             speed: 0.25,
             name: "RED GUY",
-            scales: options.scales
+            scales: options.scales,
+            ...options
         });
         this.initializeGraphics(options.worldContainer);
     }
@@ -382,7 +395,8 @@ class MiniBlue extends Enemy {
             hp: 3,
             speed: 0.50,
             radius: 12.5,
-            name: "MINI BLUE"
+            name: "MINI BLUE",
+            ...options
         }); 
         this.hbtype = "circle";
         this.initializeGraphics(options.worldContainer);
@@ -407,7 +421,8 @@ class Shrieker extends Enemy {
             speed: 0.10,
             hbtype: "circle",
             radius: 25,
-            scales: options.scales 
+            scales: options.scales,
+            ...options
         });
         this.normalSpeed = 0.10;
         this.shriekSpeed = 0.40; // 4x normal speed
@@ -511,7 +526,8 @@ class Ghost extends Enemy {
             targetting: false,
             hbtype: "circle",
             radius: 25,
-            scales: options.scales
+            scales: options.scales,
+            ...options
         });
         this.initializeGraphics(options.worldContainer);
     }
@@ -545,7 +561,8 @@ class ToxicGreen extends Enemy {
             speed: 0.25,
             name: "TOXIC GREEN",
             damage: 25,
-            scales: options.scales
+            scales: options.scales,
+            ...options
         });
         this.explosionRadius = this.width + 150; 
         this.bulletCount = 8;    
@@ -616,7 +633,8 @@ class DefaultBoss extends Enemy {
             speed: 0.10,
             name: "BOSS GUY",
             targetRadius: random(250, 500),
-            scales: options.scales
+            scales: options.scales,
+            ...options
         });
 
         this.cannon = new DefaultCannon({

@@ -322,7 +322,7 @@ const WAVE_DATA = {
         },
         {
             enemies: {
-                "Ghost": 5,
+                "Ghost": 3,
                 "ToxicGreen": 2,
                 "DefaultEnemy": 1,
             },
@@ -334,6 +334,67 @@ const WAVE_DATA = {
             },
             special_instructions: () => {
                 EnemySpawner.setSpawnRateForType(Ghost, 1500);
+            }
+        }
+    ],
+
+    7: [
+        {
+            options: {
+                fake_wake: true,
+                special_condition: () => {
+                    return false;
+                },
+            },
+            special_instructions: async () => {
+                activeDialogue.showDialogue({
+                    text: "HEY, BE ALERT! I'm detecting a bigger wave than ever.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "./sprites/sophia_bored.png" })),
+                });
+                activeDialogue.showDialogue({
+                    text: "It seems like they're being drawn to something... be careful.",
+                    sprite: new PIXI.Sprite(await PIXI.Assets.load({ src: "./sprites/sophia_bored.png" })),
+                    special_condition: () => {
+                        return activeDialogue.globalTimer >= 2000;
+                    },
+                    onEnd: () => {
+                        currentWaves.trigger_next_wave();
+                    }
+                });
+            },
+        },
+        {
+            enemies: {
+                "DefaultEnemy": 10000,
+                "MiniBlue": 10000,
+                "ToxicGreen": 10000,
+                "Ghost": 1,
+            },
+            special_instructions: () => {
+                const ghostSpawner = findEnemy("GhostSpawner");
+                const defaultSpawners = findAllEnemies("DefaultEnemySpawner");
+                const miniBlueSpawners = findAllEnemies("MiniBlueSpawner");
+                const toxicGreenSpawners = findAllEnemies("ToxicGreenSpawner");
+
+                if(ghostSpawner) {
+                    ghostSpawner.hp_scale = 250;
+                    ghostSpawner.speed_scale = 0.6;
+                    ghostSpawner.dmg_scale = 10;
+                    ghostSpawner.size_scale = 3;
+                    ghostSpawner.boss = true;
+                }
+
+                for(let i = 0; i < defaultSpawners.length; i++) {
+                    defaultSpawners[i].spawn_rate = 3500;
+                }   
+
+                for(let i = 0; i < miniBlueSpawners.length; i++) {
+                    miniBlueSpawners[i].spawn_rate = 10000;
+                }
+
+                for(let i = 0; i < toxicGreenSpawners.length; i++) {
+                    toxicGreenSpawners[i].spawn_rate = 7500;
+                }
             }
         }
     ]
@@ -360,7 +421,7 @@ WAVE_DATA.level_instructions = {
                 "DefaultBoss": 0.01,
             }
         }
-    }
+    },
 };
 
 function getWaveData(level, worldContainer) {

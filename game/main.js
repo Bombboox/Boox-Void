@@ -454,6 +454,25 @@ function destroyAllEnemies() {
     }
 }
 
+function findEnemy(type) {
+    for(let i = enemies.length - 1; i >= 0; i--) {
+        if(enemies[i] && enemies[i].constructor.name === type) {
+            return enemies[i];
+        }
+    }
+    return null;
+}
+
+function findAllEnemies(type) {
+    const foundEnemies = [];
+    for(let i = enemies.length - 1; i >= 0; i--) {
+        if(enemies[i] && enemies[i].constructor.name === type) {
+            foundEnemies.push(enemies[i]);
+        }
+    }
+    return foundEnemies;
+}
+
 function setBackgroundColor(color) {
     backgroundColor = color;
     backgroundGraphics.clear();

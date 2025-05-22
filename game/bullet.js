@@ -8,28 +8,26 @@ class Bullet {
         this.angle = options.angle || 0;
         this.lifeTime = options.lifeTime || 3000;
         this.worldContainer = options.worldContainer; // Required
-        this.remainingHits = this.pierce; // Use the assigned pierce value
-        this.color = options.color || 0xff0000; // Default enemy bullet color to red
+        this.remainingHits = this.pierce; 
+        this.color = options.color || 0xff0000; 
         this.hbtype = options.hbtype || "circle";
-        this.enemy_bullet = options.enemy_bullet || false; // New option
+        this.enemy_bullet = options.enemy_bullet || false; 
         this.crit_roll = options.crit_roll || false;
 
         if (!this.worldContainer) {
             console.error("Bullet created without worldContainer!");
-            // Handle error appropriately, maybe throw an error or return?
         }
 
         this.graphics = new PIXI.Graphics();
         this.graphics.position.set(this.position.x, this.position.y);
-        this.renderGraphics(); // Initial draw
-        if (this.worldContainer) { // Check again in case error handling didn't stop execution
+        this.renderGraphics(); 
+        if (this.worldContainer) { 
             this.worldContainer.addChild(this.graphics);
         }
     }
 
     checkCollision() {
         if (this.enemy_bullet) {
-            // Enemy bullet collision logic
             for (const shape of activeLevel.shapes) {
                 const shapeCollider = {
                     position: vector(shape.x, shape.y),
@@ -48,18 +46,16 @@ class Bullet {
             if(checkCollision(this, player)) {
                 this.destroy();
                 player.takeDamage(this.damage);
-                return true; // Collision detected
+                return true; 
             }
-            return false; // No collision
+            return false; 
 
         } else {
-            // Player bullet collision logic
             for (const enemy of enemies) {
                 if (checkCollision(this, enemy)) {
                     this.hit(enemy);
                     activeEnemy = enemy;
                     healthBarTimer = healthBarDuration;
-                    // Do not return true here if we want to check for wall collisions too
                 }
             }
 
@@ -111,26 +107,23 @@ class Bullet {
     }
 
     destroy() {
-        if (this.graphics && this.worldContainer) { // Check if graphics exist before removing
+        if (this.graphics && this.worldContainer) { 
             this.worldContainer.removeChild(this.graphics);
         } else if (!this.worldContainer) {
             console.warn("Bullet trying to destroy graphics without worldContainer reference.");
         }
         
-        // Check if graphics exist and haven't been destroyed already
         if (this.graphics && !this.graphics._destroyed) {
              this.graphics.destroy();
         }
-        this.graphics = null; // Set graphics to null after destroying
+        this.graphics = null; 
 
-        // Remove from player bullets array
         let index = bullets.indexOf(this);
         if (index !== -1) {
             bullets.splice(index, 1);
-            return; // Exit if found and removed from player bullets
+            return; 
         }
 
-        // Remove from enemy bullets array if not found in player bullets
         index = enemy_bullets.indexOf(this);
         if (index !== -1) {
             enemy_bullets.splice(index, 1);
@@ -153,8 +146,8 @@ class HitscanBullet extends Bullet {
 
     renderGraphics() {
         this.graphics.clear();
-        this.graphics.pivot.set(0, 5 / 2); // Set pivot point to center of left edge
-        this.graphics.rotation = this.angle; // Apply rotation based on bullet angle
+        this.graphics.pivot.set(0, 5 / 2);
+        this.graphics.rotation = this.angle; 
         this.graphics.rect(0, 0, 40, 5);
         this.graphics.fill({color: this.color});
     }
@@ -188,12 +181,11 @@ class ExplosiveBullet extends Bullet {
     } 
 
     checkCollision() {
-        // Store result of super.checkCollision()
         const collisionHappened = super.checkCollision();
-        if(collisionHappened && !this.enemy_bullet) { // Only explode if it's a player bullet hitting something
+        if(collisionHappened && !this.enemy_bullet) { 
             this.explode();
         }
-        return collisionHappened; // Return the original collision result
+        return collisionHappened; 
     }
 }
 
@@ -295,13 +287,11 @@ class Explosion extends Bullet {
             return;
         }
         this.radius += 0.5 * deltaTime;
-        // Update the size of the explosion graphics to match the new radius
-        this.renderGraphics(); // Re-render to show new size and color
+        this.renderGraphics(); 
         this.checkCollision();
     }
 
     checkCollision() {
-        // check collision with enemies
         for (const enemy of enemies) {
             if (checkCollision(this, enemy)) {
                 this.hit(enemy);

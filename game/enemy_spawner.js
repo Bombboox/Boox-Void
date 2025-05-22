@@ -23,7 +23,8 @@ class EnemySpawner {
                 dmg: this.dmg_scale,
                 speed: this.speed_scale,
                 size: this.size_scale
-            }
+            },
+            boss: this.boss
         });
 
         enemy.refreshGraphics();
