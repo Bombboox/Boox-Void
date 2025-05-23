@@ -397,10 +397,79 @@ const WAVE_DATA = {
                 }
             }
         }
+    ],
+
+    8: [
+        {
+            special_instructions: () => {
+                const defaultSpawner = findEnemy("DefaultEnemySpawner");
+
+                if(defaultSpawner) {
+                    defaultSpawner.addProperty("fireTimer", 0);
+                    defaultSpawner.addProperty("fireRate", 2000);
+                    defaultSpawner.addFunction(function(deltaTime, worldContainer) {
+                        this.fireTimer += deltaTime;
+                        if (this.fireTimer >= this.fireRate) {
+                            const angle = getAngleTowardsPlayer(this.position);
+                            
+                            const bullet = new DefaultBullet({
+                                x: this.position.x + this.width / 2,
+                                y: this.position.y + this.height / 2,
+                                damage: this.dmg,
+                                angle: angle,
+                                worldContainer: worldContainer,
+                                speed: 0.5,
+                                color: 0xffffff,
+                                enemy_bullet: true,
+                                radius: 10
+                            });
+                            enemy_bullets.push(bullet);
+                            this.fireTimer = 0;
+                        }
+                    });
+                }
+
+                EnemySpawner.setPropertyForAll({
+                    hp_scale: 7.5,
+                    speed_scale: 1.5,
+                    dmg_scale: 2,
+                });
+
+                EnemySpawner.setPropertyForType("MiniBlueSpawner", {
+                    speed_scale: 1,
+                    hp_scale: 4
+                });
+            },
+            enemies: {
+                "Ghost": 1,
+                "ToxicGreen": 1
+            },
+        },
+        {
+            enemies: {
+                "Ghost": 1,
+                "MiniBlue": 1,
+                "DefaultEnemy": 1,
+            },
+        },
+        {
+            enemies: {
+                "Ghost": 2,
+                "ToxicGreen": 1,
+                "MiniBlue": 1,
+                "DefaultEnemy": 3,
+            },
+        },
     ]
 };
 
 WAVE_DATA.level_instructions = {
+    0: {
+        onStart: () => {
+            stopAndPlayMusic("chill_5", true, 0.3);
+        }
+    },
+
     5: {
         onStart: () => {
             lighting.setDarknessOpacity(0.99);

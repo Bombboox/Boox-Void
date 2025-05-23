@@ -16,7 +16,7 @@ class DialogueBox {
 
         this.background = new PIXI.Graphics();
         this.background.rect(0, app.screen.height - this.options.height, this.options.width, this.options.height);
-        this.background.fill(0x000000, 0.8);
+        this.background.fill({color: 0x000000, alpha: 0.8});
         this.container.addChild(this.background);
 
         this.spriteContainer = new PIXI.Container();
@@ -26,12 +26,15 @@ class DialogueBox {
         );
         this.container.addChild(this.spriteContainer);
 
-        this.text = new PIXI.Text('', {
-            fontFamily: 'Arial',
-            fontSize: 24,
-            fill: 0xFFFFFF,
-            wordWrap: true,
-            wordWrapWidth: this.options.width - (this.options.padding * 3) - this.options.spriteSize
+        this.text = new PIXI.Text({
+            text: '',
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 24,
+                fill: 0xFFFFFF,
+                wordWrap: true,
+                wordWrapWidth: this.options.width - (this.options.padding * 3) - this.options.spriteSize
+            }
         });
         
         this.text.position.set(
@@ -175,7 +178,7 @@ class DialogueBox {
 
         this.background.clear();
         this.background.rect(0, this.app.screen.height - this.options.height, this.options.width, this.options.height);
-        this.background.fill(0x000000, 0.8);
+        this.background.fill({color: 0x000000, alpha: 0.8});
 
         this.spriteContainer.position.set(
             this.options.width - this.options.padding,

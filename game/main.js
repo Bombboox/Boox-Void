@@ -405,6 +405,7 @@ function handleResize() {
     app.renderer.resize(window.innerWidth, window.innerHeight);
     app.renderer.resolution = devicePixelRatio;
     if(activeDialogue) activeDialogue.resize();
+    if(minimap) minimap.handleResize();
 
     if (isMobile) {
         repositionJoysticks();

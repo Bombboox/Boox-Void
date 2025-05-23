@@ -164,6 +164,16 @@ function checkCollision(hb1, hb2) {
     return distanceSquared < (circle.radius * circle.radius);
 }
 
+function getAngleTowardsPlayer(position) {
+    if (!player || !player.position) return 0;
+    
+    const playerPos = player.position instanceof Vector ? player.position : vector(player.position.x, player.position.y);
+    const pos = position instanceof Vector ? position : vector(position.x, position.y);
+    
+    const dx = playerPos.x - pos.x;
+    const dy = playerPos.y - pos.y;
+    return Math.atan2(dy, dx);
+}
 
 
 function lerp(start, end, t) {

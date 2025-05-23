@@ -11,6 +11,16 @@ class EnemySpawner {
         this.speed_scale = options.speed_scale || 1;
         this.size_scale = options.size_scale || 1;
         this.boss = options.boss || false;
+        this.additionalFunctions = [];
+        this.additionalProperties = {};
+    }
+
+    addFunction(func) {
+        this.additionalFunctions.push(func);
+    }
+
+    addProperty(name, value) {
+        this.additionalProperties[name] = value;
     }
 
     spawn(worldContainer) {
@@ -26,6 +36,25 @@ class EnemySpawner {
             },
             boss: this.boss
         });
+
+        // Add additional properties
+        for (const [key, value] of Object.entries(this.additionalProperties)) {
+            enemy[key] = value;
+        }
+
+        // Add additional functions to enemy's update
+        if (this.additionalFunctions.length > 0) {
+            const originalUpdate = enemy.update;
+            enemy.update = function(deltaTime, worldContainer) {
+                // Call all additional functions first
+                for (const func of this.additionalFunctions) {
+                    func.call(this, deltaTime, worldContainer);
+                }
+                // Then call original update
+                originalUpdate.call(this, deltaTime, worldContainer);
+            };
+            enemy.additionalFunctions = this.additionalFunctions;
+        }
 
         enemy.refreshGraphics();
 
@@ -60,6 +89,28 @@ class EnemySpawner {
             }
         }
     }
+
+    static setPropertyForType(enemyType, properties) {
+        const enemySpawners = findAllEnemies(enemyType);
+        for (let i = 0; i < enemySpawners.length; i++) {
+            const enemySpawner = enemySpawners[i];
+            for (const [property, value] of Object.entries(properties)) {
+                enemySpawner[property] = value;
+            }
+        }
+    }
+
+    static setPropertyForAll(properties) {
+        for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
+            if (enemy instanceof EnemySpawner) {
+                for (const [property, value] of Object.entries(properties)) {
+                    enemy[property] = value;
+                }
+            }
+        }
+    }
+
 }
 
 class DefaultEnemySpawner extends EnemySpawner {

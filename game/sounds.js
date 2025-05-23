@@ -32,6 +32,7 @@ function loadSound() {
     createjs.Sound.registerSound("sounds/music/chill/WhispersInShadows.mp3", "chill_4");
     createjs.Sound.registerSound("sounds/music/chill/WhispersInTheGrove.mp3", "chill_5");
     createjs.Sound.registerSound("sounds/music/chill/ZeroHour.mp3", "chill_6");
+    createjs.Sound.registerSound("sounds/music/chill/tutorial.mp3", "chill_7");
 
     createjs.Sound.registerSound("sounds/music/action/RunItBack.mp3", "action_1");
     createjs.Sound.registerSound("sounds/music/action/Sprint.mp3", "action_2");

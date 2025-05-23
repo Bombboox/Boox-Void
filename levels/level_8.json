@@ -1,0 +1,292 @@
+{
+  "theme": "action",
+  "objects": [
+    {
+      "type": "Point",
+      "x": 0,
+      "y": -50,
+      "tag": "spawn",
+      "color": "yellow"
+    },
+    {
+      "type": "Rectangle",
+      "x": -1150,
+      "y": -1150,
+      "width": 2300,
+      "height": 50,
+      "color": "#8f6666",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -1150,
+      "y": 1000,
+      "width": 1050,
+      "height": 50,
+      "color": "#8f6666",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1100,
+      "y": -1150,
+      "width": 50,
+      "height": 1950,
+      "color": "#8f6666",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -1150,
+      "y": -1150,
+      "width": 50,
+      "height": 1950,
+      "color": "#8f6666",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 100,
+      "y": 1000,
+      "width": 1050,
+      "height": 50,
+      "color": "#8f6666",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -1150,
+      "y": 1000,
+      "width": 50,
+      "height": 2200,
+      "color": "#8f6666",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1100,
+      "y": 1000,
+      "width": 50,
+      "height": 2200,
+      "color": "#8f6666",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -1150,
+      "y": 3150,
+      "width": 1050,
+      "height": 50,
+      "color": "#8f6666",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 100,
+      "y": 3150,
+      "width": 1050,
+      "height": 50,
+      "color": "#8f6666",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -1200,
+      "y": 800,
+      "width": 50,
+      "height": 200,
+      "color": "rgba(0, 0, 0, 0)",
+      "tag": "epassable"
+    },
+    {
+      "type": "Rectangle",
+      "x": 1150,
+      "y": 800,
+      "width": 50,
+      "height": 200,
+      "color": "rgba(0, 0, 0, 0)",
+      "tag": "epassable"
+    },
+    {
+      "type": "Rectangle",
+      "x": -100,
+      "y": 3200,
+      "width": 200,
+      "height": 50,
+      "color": "rgba(0, 0, 0, 0)",
+      "tag": "epassable"
+    },
+    {
+      "type": "Point",
+      "x": -1150,
+      "y": 800,
+      "tag": "left",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 1150,
+      "y": 800,
+      "tag": "right",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 0,
+      "y": 3200,
+      "tag": "bottom",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 0,
+      "y": -1150,
+      "tag": "top",
+      "color": "red"
+    },
+    {
+      "type": "Rectangle",
+      "x": -1400,
+      "y": 750,
+      "width": 250,
+      "height": 50,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -1450,
+      "y": 750,
+      "width": 50,
+      "height": 300,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -1450,
+      "y": 1000,
+      "width": 300,
+      "height": 50,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1150,
+      "y": 1000,
+      "width": 250,
+      "height": 50,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1400,
+      "y": 750,
+      "width": 50,
+      "height": 300,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 1150,
+      "y": 750,
+      "width": 300,
+      "height": 50,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -150,
+      "y": 3200,
+      "width": 50,
+      "height": 250,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": -150,
+      "y": 3450,
+      "width": 300,
+      "height": 50,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Rectangle",
+      "x": 100,
+      "y": 3200,
+      "width": 50,
+      "height": 300,
+      "color": "#ff0000",
+      "tag": ""
+    },
+    {
+      "type": "Point",
+      "x": -1250,
+      "y": 900,
+      "tag": "espawn2",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 1250,
+      "y": 900,
+      "tag": "espawn2",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 0,
+      "y": 3300,
+      "tag": "espawn",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1300,
+      "y": 900,
+      "tag": "espawn3",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 1300,
+      "y": 900,
+      "tag": "espawn3",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1200,
+      "y": -1200,
+      "tag": "espawn5",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 1200,
+      "y": -1200,
+      "tag": "espawn5",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": 1200,
+      "y": 3250,
+      "tag": "espawn5",
+      "color": "red"
+    },
+    {
+      "type": "Point",
+      "x": -1200,
+      "y": 3250,
+      "tag": "espawn5",
+      "color": "red"
+    }
+  ]
+}
